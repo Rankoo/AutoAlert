@@ -19,10 +19,17 @@ namespace AutoAlertBackEnd.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
+
         private readonly IConfiguration _configuration;
-        public AuthController(IUserRepository userRepository, IConfiguration configuration)
+        public AuthController(
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+             IConfiguration configuration
+        )
         { 
             _userRepository = userRepository;
+            _roleRepository = roleRepository;
             _configuration = configuration;
         }
 
@@ -41,58 +48,18 @@ namespace AutoAlertBackEnd.Controllers
             if (BCrypt.Net.BCrypt.Verify(logIn.Password, user.PasswordHash))
             {
                 var token = GenerateJwtForUser(user);
-                return Ok(new { Token = token });
+                Response.Cookies.Append("access_token", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    // Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddHours(1)
+                });
+                return Ok();
             }
 
             return Unauthorized();
         }
-
-        //[HttpPost("google-signin")]
-        //public async Task<IActionResult> GoogleSignIn([FromBody] ExternalAuthDto dto)
-        //{
-        //    if (dto == null || string.IsNullOrEmpty(dto.IdToken))
-        //        return BadRequest("IdToken is required.");
-
-        //    // Validate Google id_token
-        //    var clientId = _configuration["Authentication:Google:ClientId"];
-        //    try
-        //    {
-        //        var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, new GoogleJsonWebSignature.ValidationSettings
-        //        {
-        //            Audience = new[] { clientId }
-        //        });
-
-        //        var email = payload.Email;
-        //        if (string.IsNullOrEmpty(email))
-        //            return BadRequest("Google token does not contain email.");
-
-        //        // Find or create local user
-        //        var user = await _userRepository.GetUserByEmailAsync(email);
-        //        if (user == null)
-        //        {
-        //            user = new AutoAlertBackEnd.Models.Users
-        //            {
-        //                Email = email,
-        //                Names = payload.Name ?? payload.GivenName ?? "GoogleUser",
-        //                GoogleId = payload.Subject,
-        //                IsActive = true
-        //            };
-        //            user = await _userRepository.CreateUserAsync(user);
-        //        }
-        //        else if (string.IsNullOrEmpty(user.GoogleId))
-        //        {
-        //            user.GoogleId = payload.Subject;
-        //            await _userRepository.UpdateUserAsync(user);
-        //        }
-
-        //        var token = GenerateJwtForUser(user);
-        //        return Ok(new { Token = token });
-        //    }
-        //    catch (InvalidJwtException ex)
-        //    {
-        //        return BadRequest($"Invalid Google token: {ex.Message}");
-        //    }
-        //}
 
         private string GenerateJwtForUser(Users user)
         {

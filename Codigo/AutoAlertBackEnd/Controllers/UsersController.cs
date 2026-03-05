@@ -18,6 +18,7 @@ public class UsersController : ControllerBase
     }
 
     [Authorize]
+    [Authorize(Policy = "VIEW_USERS")]
     [HttpGet("GetAllUsers")]
     public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
     {

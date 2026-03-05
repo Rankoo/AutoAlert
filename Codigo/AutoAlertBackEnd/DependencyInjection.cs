@@ -35,6 +35,7 @@ namespace AutoAlertBackEnd
             services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
             services.AddScoped<IUserGroupRepository, UserGroupRepository>();
             services.AddScoped<ILogRepository, LogRepository>();
+            services.AddScoped<IPermissionService, PermissionService>();
 
             return services;
         }
