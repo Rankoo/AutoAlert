@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/permissions/users")]
 public class UserSubmodulesController : ControllerBase
 {
     private readonly IUserSubmoduleRepository _repo;
@@ -17,7 +17,8 @@ public class UserSubmodulesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllUserSubmodules")]
+    [Authorize(Policy = "VIEW_PERMISSIONS")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<UserSubmodules>>> GetAll()
     {
         try
@@ -31,8 +32,9 @@ public class UserSubmodulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserSubmoduleById")]
-    public async Task<ActionResult<UserSubmodules>> Get([FromQuery] Guid userId, [FromQuery] Guid subModuleId)
+    [Authorize(Policy = "VIEW_PERMISSIONS")]
+    [HttpGet("{userId}/{subModuleId}")]
+    public async Task<ActionResult<UserSubmodules>> Get(Guid userId, Guid subModuleId)
     {
         try
         {
@@ -46,35 +48,8 @@ public class UserSubmodulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserSubmodulesByUserId/{userId}")]
-    public async Task<ActionResult<IEnumerable<UserSubmodules>>> GetByUserId(Guid userId)
-    {
-        try
-        {
-            var list = await _repo.GetByUserIdAsync(userId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetUserSubmodulesBySubModuleId/{subModuleId}")]
-    public async Task<ActionResult<IEnumerable<UserSubmodules>>> GetBySubModuleId(Guid subModuleId)
-    {
-        try
-        {
-            var list = await _repo.GetBySubModuleIdAsync(subModuleId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateUserSubmodule")]
+    [Authorize(Policy = "UPDATE_PERMISSIONS")]
+    [HttpPost]
     public async Task<ActionResult<UserSubmodules>> Create(UserSubmodules userSubmodule)
     {
         try
@@ -88,8 +63,9 @@ public class UserSubmodulesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateUserSubmodule")]
-    public async Task<IActionResult> Update([FromQuery] Guid userId, [FromQuery] Guid subModuleId, UserSubmodules userSubmodule)
+    [Authorize(Policy = "UPDATE_PERMISSIONS")]
+    [HttpPut("{userId}/{subModuleId}")]
+    public async Task<IActionResult> Update(Guid userId, Guid subModuleId, UserSubmodules userSubmodule)
     {
         try
         {
@@ -106,8 +82,9 @@ public class UserSubmodulesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteUserSubmodule")]
-    public async Task<IActionResult> Delete([FromQuery] Guid userId, [FromQuery] Guid subModuleId)
+    [Authorize(Policy = "UPDATE_PERMISSIONS")]
+    [HttpDelete("{userId}/{subModuleId}")]
+    public async Task<IActionResult> Delete(Guid userId, Guid subModuleId)
     {
         try
         {
@@ -121,4 +98,3 @@ public class UserSubmodulesController : ControllerBase
         }
     }
 }
-

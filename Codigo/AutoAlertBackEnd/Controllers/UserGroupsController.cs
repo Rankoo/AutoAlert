@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user-groups")]
 public class UserGroupsController : ControllerBase
 {
     private readonly IUserGroupRepository _repo;
@@ -17,7 +17,8 @@ public class UserGroupsController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllUserGroups")]
+    [Authorize(Policy = "VIEW_USER_GROUPS")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<UserGroups>>> GetAll()
     {
         try
@@ -31,8 +32,9 @@ public class UserGroupsController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserGroupById")]
-    public async Task<ActionResult<UserGroups>> Get([FromQuery] Guid userId, [FromQuery] Guid groupId)
+    [Authorize(Policy = "VIEW_USER_GROUPS")]
+    [HttpGet("{userId}/{groupId}")]
+    public async Task<ActionResult<UserGroups>> Get(Guid userId, Guid groupId)
     {
         try
         {
@@ -46,35 +48,8 @@ public class UserGroupsController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserGroupsByUserId/{userId}")]
-    public async Task<ActionResult<IEnumerable<UserGroups>>> GetByUserId(Guid userId)
-    {
-        try
-        {
-            var list = await _repo.GetByUserIdAsync(userId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetUserGroupsByGroupId/{groupId}")]
-    public async Task<ActionResult<IEnumerable<UserGroups>>> GetByGroupId(Guid groupId)
-    {
-        try
-        {
-            var list = await _repo.GetByGroupIdAsync(groupId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateUserGroup")]
+    [Authorize(Policy = "CREATE_USER_GROUPS")]
+    [HttpPost]
     public async Task<ActionResult<UserGroups>> Create(UserGroups userGroup)
     {
         try
@@ -88,8 +63,9 @@ public class UserGroupsController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateUserGroup")]
-    public async Task<IActionResult> Update([FromQuery] Guid userId, [FromQuery] Guid groupId, UserGroups userGroup)
+    [Authorize(Policy = "CREATE_USER_GROUPS")]
+    [HttpPut("{userId}/{groupId}")]
+    public async Task<IActionResult> Update(Guid userId, Guid groupId, UserGroups userGroup)
     {
         try
         {
@@ -106,8 +82,9 @@ public class UserGroupsController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteUserGroup")]
-    public async Task<IActionResult> Delete([FromQuery] Guid userId, [FromQuery] Guid groupId)
+    [Authorize(Policy = "DELETE_USER_GROUPS")]
+    [HttpDelete("{userId}/{groupId}")]
+    public async Task<IActionResult> Delete(Guid userId, Guid groupId)
     {
         try
         {
@@ -121,4 +98,3 @@ public class UserGroupsController : ControllerBase
         }
     }
 }
-

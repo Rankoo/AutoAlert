@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/document-types")]
 public class DocumentTypesController : ControllerBase
 {
     private readonly IDocumentTypeRepository _repo;
@@ -17,7 +17,8 @@ public class DocumentTypesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllDocumentTypes")]
+    [Authorize(Policy = "VIEW_DOCUMENT_TYPES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<DocumentTypes>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class DocumentTypesController : ControllerBase
         }
     }
 
-    [HttpGet("GetDocumentTypeById/{id}")]
+    [Authorize(Policy = "VIEW_DOCUMENT_TYPES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<DocumentTypes>> Get(Guid id)
     {
         try
@@ -46,7 +48,8 @@ public class DocumentTypesController : ControllerBase
         }
     }
 
-    [HttpPost("CreateDocumentType")]
+    [Authorize(Policy = "CREATE_DOCUMENT_TYPES")]
+    [HttpPost]
     public async Task<ActionResult<DocumentTypes>> Create(DocumentTypes documentType)
     {
         try
@@ -60,7 +63,8 @@ public class DocumentTypesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateDocumentType/{id}")]
+    [Authorize(Policy = "EDIT_DOCUMENT_TYPES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, DocumentTypes documentType)
     {
         try
@@ -78,7 +82,8 @@ public class DocumentTypesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteDocumentType/{id}")]
+    [Authorize(Policy = "DELETE_DOCUMENT_TYPES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -93,4 +98,3 @@ public class DocumentTypesController : ControllerBase
         }
     }
 }
-

@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user-companies")]
 public class UserCompaniesController : ControllerBase
 {
     private readonly IUserCompanyRepository _repo;
@@ -17,7 +17,8 @@ public class UserCompaniesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllUserCompanies")]
+    [Authorize(Policy = "VIEW_USER_COMPANIES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<UserCompanies>>> GetAll()
     {
         try
@@ -31,8 +32,9 @@ public class UserCompaniesController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserCompanyById")]
-    public async Task<ActionResult<UserCompanies>> Get([FromQuery] Guid userId, [FromQuery] Guid companyId)
+    [Authorize(Policy = "VIEW_USER_COMPANIES")]
+    [HttpGet("{userId}/{companyId}")]
+    public async Task<ActionResult<UserCompanies>> Get(Guid userId, Guid companyId)
     {
         try
         {
@@ -46,35 +48,8 @@ public class UserCompaniesController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserCompaniesByUserId/{userId}")]
-    public async Task<ActionResult<IEnumerable<UserCompanies>>> GetByUserId(Guid userId)
-    {
-        try
-        {
-            var list = await _repo.GetByUserIdAsync(userId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetUserCompaniesByCompanyId/{companyId}")]
-    public async Task<ActionResult<IEnumerable<UserCompanies>>> GetByCompanyId(Guid companyId)
-    {
-        try
-        {
-            var list = await _repo.GetByCompanyIdAsync(companyId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateUserCompany")]
+    [Authorize(Policy = "CREATE_USER_COMPANIES")]
+    [HttpPost]
     public async Task<ActionResult<UserCompanies>> Create(UserCompanies userCompany)
     {
         try
@@ -88,8 +63,9 @@ public class UserCompaniesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateUserCompany")]
-    public async Task<IActionResult> Update([FromQuery] Guid userId, [FromQuery] Guid companyId, UserCompanies userCompany)
+    [Authorize(Policy = "CREATE_USER_COMPANIES")]
+    [HttpPut("{userId}/{companyId}")]
+    public async Task<IActionResult> Update(Guid userId, Guid companyId, UserCompanies userCompany)
     {
         try
         {
@@ -106,8 +82,9 @@ public class UserCompaniesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteUserCompany")]
-    public async Task<IActionResult> Delete([FromQuery] Guid userId, [FromQuery] Guid companyId)
+    [Authorize(Policy = "DELETE_USER_COMPANIES")]
+    [HttpDelete("{userId}/{companyId}")]
+    public async Task<IActionResult> Delete(Guid userId, Guid companyId)
     {
         try
         {
@@ -121,4 +98,3 @@ public class UserCompaniesController : ControllerBase
         }
     }
 }
-

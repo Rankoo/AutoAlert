@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/services")]
 public class ServicesController : ControllerBase
 {
     private readonly IServiceRepository _repo;
@@ -17,7 +17,8 @@ public class ServicesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllServices")]
+    [Authorize(Policy = "VIEW_SERVICES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Services>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class ServicesController : ControllerBase
         }
     }
 
-    [HttpGet("GetServiceById/{id}")]
+    [Authorize(Policy = "VIEW_SERVICES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Services>> Get(Guid id)
     {
         try
@@ -46,21 +48,8 @@ public class ServicesController : ControllerBase
         }
     }
 
-    [HttpGet("GetServicesByStoreId/{storeId}")]
-    public async Task<ActionResult<IEnumerable<Services>>> GetByStoreId(Guid storeId)
-    {
-        try
-        {
-            var list = await _repo.GetByStoreIdAsync(storeId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateService")]
+    [Authorize(Policy = "CREATE_SERVICES")]
+    [HttpPost]
     public async Task<ActionResult<Services>> Create(Services service)
     {
         try
@@ -74,7 +63,8 @@ public class ServicesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateService/{id}")]
+    [Authorize(Policy = "EDIT_SERVICES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Services service)
     {
         try
@@ -92,7 +82,8 @@ public class ServicesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteService/{id}")]
+    [Authorize(Policy = "DELETE_SERVICES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -107,4 +98,3 @@ public class ServicesController : ControllerBase
         }
     }
 }
-

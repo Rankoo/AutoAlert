@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/stores")]
 public class StoresController : ControllerBase
 {
     private readonly IStoreRepository _repo;
@@ -17,14 +17,16 @@ public class StoresController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllStores")]
+    [Authorize(Policy = "VIEW_STORES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Stores>>> GetAll()
     {
         var list = await _repo.GetAllAsync();
         return Ok(list);
     }
 
-    [HttpGet("GetStoreById/{id}")]
+    [Authorize(Policy = "VIEW_STORES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Stores>> Get(Guid id)
     {
         try {
@@ -39,7 +41,8 @@ public class StoresController : ControllerBase
         }
     }
 
-    [HttpPost("CreateStore")]
+    [Authorize(Policy = "CREATE_STORES")]
+    [HttpPost]
     public async Task<ActionResult<Stores>> Create(Stores store)
     {
         try {
@@ -52,7 +55,8 @@ public class StoresController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateStore/{id}")]
+    [Authorize(Policy = "EDIT_STORES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Stores store)
     {
         try {
@@ -68,7 +72,8 @@ public class StoresController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteStore/{id}")]
+    [Authorize(Policy = "DELETE_STORES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try {

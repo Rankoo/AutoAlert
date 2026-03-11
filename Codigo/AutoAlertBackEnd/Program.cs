@@ -1,4 +1,5 @@
 ﻿using AutoAlertBackEnd;
+using AutoAlertBackEnd.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -36,23 +37,9 @@ if (string.IsNullOrEmpty(jwtKey))
 var key = Encoding.UTF8.GetBytes(jwtKey);
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
-builder.Services.AddAuthorization(options =>
-{
-    var permissions = new[]
-    {
-        "VIEW_USERS", "EDIT_USERS", "DELETE_USERS", "CREATE_USERS",
-        "UPDATE_PERMISSIONS",
-        "VIEW_STORES", "CREATE_STORES", "EDIT_STORES", "DELETE_STORES",
-        "VIEW_SERVICES", "CREATE_SERVICES", "EDIT_SERVICES", "DELETE_SERVICES",
-        "VIEW_COMPANIES", "CREATE_COMPANIES", "EDIT_COMPANIES", "DELETE_COMPANIES"
-    };
 
-    foreach (var permission in permissions)
-    {
-        options.AddPolicy(permission, policy =>
-            policy.Requirements.Add(new PermissionRequirement(permission)));
-    }
-});
+// Configurar políticas de autorización desde archivo externo
+builder.Services.AddAuthorization(AuthorizationPolicies.ConfigurePolicies);
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
