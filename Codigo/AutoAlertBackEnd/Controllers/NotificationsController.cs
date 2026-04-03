@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/notifications")]
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationRepository _repo;
@@ -17,7 +17,8 @@ public class NotificationsController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllNotifications")]
+    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Notifications>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    [HttpGet("GetNotificationById/{id}")]
+    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Notifications>> Get(Guid id)
     {
         try
@@ -46,35 +48,8 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    [HttpGet("GetNotificationsByAlertId/{alertId}")]
-    public async Task<ActionResult<IEnumerable<Notifications>>> GetByAlertId(Guid alertId)
-    {
-        try
-        {
-            var list = await _repo.GetByAlertIdAsync(alertId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetNotificationsByUserId/{userId}")]
-    public async Task<ActionResult<IEnumerable<Notifications>>> GetByUserId(Guid userId)
-    {
-        try
-        {
-            var list = await _repo.GetByUserIdAsync(userId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateNotification")]
+    [Authorize(Policy = "CREATE_NOTIFICATIONS")]
+    [HttpPost]
     public async Task<ActionResult<Notifications>> Create(Notifications notification)
     {
         try
@@ -88,7 +63,8 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateNotification/{id}")]
+    [Authorize(Policy = "EDIT_NOTIFICATIONS")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Notifications notification)
     {
         try
@@ -106,7 +82,8 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteNotification/{id}")]
+    [Authorize(Policy = "DELETE_NOTIFICATIONS")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -121,4 +98,3 @@ public class NotificationsController : ControllerBase
         }
     }
 }
-

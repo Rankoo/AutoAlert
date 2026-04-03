@@ -8,7 +8,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/roles")]
 public class RolesController : ControllerBase
 {
     private readonly IRoleRepository _roleRepository;
@@ -18,7 +18,8 @@ public class RolesController : ControllerBase
         _roleRepository = roleRepository;
     }
 
-    [HttpGet("GetAllRoles")]
+    [Authorize(Policy = "VIEW_ROLES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Roles>>> GetRoles()
     {
         try {
@@ -31,7 +32,8 @@ public class RolesController : ControllerBase
         }
     }
 
-    [HttpGet("GetRolById/{id}")]
+    [Authorize(Policy = "VIEW_ROLES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Roles>> GetRole(Guid id)
     {
         try {
@@ -48,7 +50,8 @@ public class RolesController : ControllerBase
         }
     }
 
-    [HttpPost("CreateRol")]
+    [Authorize(Policy = "CREATE_ROLES")]
+    [HttpPost]
     public async Task<ActionResult<Roles>> CreateRole(Roles role)
     {
         try {
@@ -65,7 +68,8 @@ public class RolesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateRol/{id}")]
+    [Authorize(Policy = "EDIT_ROLES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRole(Guid id, Roles role)
     {
         try {
@@ -84,7 +88,8 @@ public class RolesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteRol/{id}")]
+    [Authorize(Policy = "DELETE_ROLES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteRole(Guid id)
     {
         try {
@@ -100,7 +105,8 @@ public class RolesController : ControllerBase
         }
     }
 
-    [HttpGet("GetRolByName/{name}")]
+    [Authorize(Policy = "VIEW_ROLES")]
+    [HttpGet("name/{name}")]
     public async Task<ActionResult<Roles>> GetRoleByName(string name)
     {
         try {

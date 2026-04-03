@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/companies")]
 public class CompaniesController : ControllerBase
 {
     private readonly ICompanyRepository _repo;
@@ -17,7 +17,8 @@ public class CompaniesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllCompanies")]
+    [Authorize(Policy = "VIEW_COMPANIES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Companies>>> GetAll()
     {
         try
@@ -30,7 +31,8 @@ public class CompaniesController : ControllerBase
         }
     }
 
-    [HttpGet("GetCompanyById/{id}")]
+    [Authorize(Policy = "VIEW_COMPANIES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Companies>> Get(Guid id)
     {
         try
@@ -45,7 +47,8 @@ public class CompaniesController : ControllerBase
         }
     }
 
-    [HttpPost("CreateCompany")]
+    [Authorize(Policy = "CREATE_COMPANIES")]
+    [HttpPost]
     public async Task<ActionResult<Companies>> Create(Companies company)
     {
         try
@@ -59,7 +62,8 @@ public class CompaniesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateCompany/{id}")]
+    [Authorize(Policy = "EDIT_COMPANIES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Companies company)
     {
         try {
@@ -76,7 +80,8 @@ public class CompaniesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteCompany/{id}")]
+    [Authorize(Policy = "DELETE_COMPANIES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try

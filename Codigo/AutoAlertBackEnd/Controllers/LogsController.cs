@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/logs")]
 public class LogsController : ControllerBase
 {
     private readonly ILogRepository _repo;
@@ -17,13 +17,20 @@ public class LogsController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllLogs")]
-    public async Task<ActionResult<IEnumerable<Logs>>> GetAll()
+    [Authorize(Policy = "VIEW_LOGS")]
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Logs>>> GetAll([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            var list = await _repo.GetAllAsync();
-            return Ok(list);
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                var list = await _repo.GetByDateRangeAsync(startDate.Value, endDate.Value);
+                return Ok(list);
+            }
+            
+            var allLogs = await _repo.GetAllAsync();
+            return Ok(allLogs);
         }
         catch (Exception e)
         {
@@ -31,7 +38,8 @@ public class LogsController : ControllerBase
         }
     }
 
-    [HttpGet("GetLogById/{id}")]
+    [Authorize(Policy = "VIEW_LOGS")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Logs>> Get(Guid id)
     {
         try
@@ -46,21 +54,8 @@ public class LogsController : ControllerBase
         }
     }
 
-    [HttpGet("GetLogsByUserId/{userId}")]
-    public async Task<ActionResult<IEnumerable<Logs>>> GetByUserId(Guid userId)
-    {
-        try
-        {
-            var list = await _repo.GetByUserIdAsync(userId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetLogsByTableName/{tableName}")]
+    [Authorize(Policy = "VIEW_LOGS")]
+    [HttpGet("table/{tableName}")]
     public async Task<ActionResult<IEnumerable<Logs>>> GetByTableName(string tableName)
     {
         try
@@ -74,47 +69,6 @@ public class LogsController : ControllerBase
         }
     }
 
-    [HttpGet("GetLogsByDateRange")]
-    public async Task<ActionResult<IEnumerable<Logs>>> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-    {
-        try
-        {
-            var list = await _repo.GetByDateRangeAsync(startDate, endDate);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateLog")]
-    public async Task<ActionResult<Logs>> Create(Logs log)
-    {
-        try
-        {
-            var created = await _repo.CreateAsync(log);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpDelete("DeleteLog/{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        try
-        {
-            var ok = await _repo.DeleteAsync(id);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
+    // NOTA: CreateLog y DeleteLog NO tienen políticas porque los logs
+    // son gestionados automáticamente por el sistema, no por usuarios
 }
-

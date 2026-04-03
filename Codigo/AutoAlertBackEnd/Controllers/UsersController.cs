@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AutoAlertBackEnd.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
@@ -17,9 +17,8 @@ public class UsersController : ControllerBase
         _userRepository = userRepository;
     }
 
-    [Authorize]
     [Authorize(Policy = "VIEW_USERS")]
-    [HttpGet("GetAllUsers")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
     {
         try {
@@ -32,8 +31,8 @@ public class UsersController : ControllerBase
         }
     }
 
-    [Authorize]
-    [HttpGet("GetUserById/{id}")]
+    [Authorize(Policy = "VIEW_USERS")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Users>> GetUser(Guid id)
     {
         try {
@@ -51,7 +50,8 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpPost("CreateUser")]
+    [Authorize(Policy = "CREATE_USERS")]
+    [HttpPost]
     public async Task<ActionResult<Users>> CreateUser(CreateUserDto newUser)
     {
         try {
@@ -68,7 +68,8 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateUser/{id}")]
+    [Authorize(Policy = "EDIT_USERS")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, Users user)
     {
         try {
@@ -87,7 +88,8 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteUser/{id}")]
+    [Authorize(Policy = "DELETE_USERS")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         try {
@@ -103,7 +105,8 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpGet("GetUserByEmail/{email}")]
+    [Authorize(Policy = "VIEW_USERS")]
+    [HttpGet("email/{email}")]
     public async Task<ActionResult<Users>> GetUserByEmail(string email)
     {
         try {
