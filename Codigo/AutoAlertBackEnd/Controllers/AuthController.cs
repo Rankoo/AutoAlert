@@ -14,7 +14,7 @@ using System.Text;
 
 namespace AutoAlertBackEnd.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -40,8 +40,10 @@ namespace AutoAlertBackEnd.Controllers
             {
                 return BadRequest("Invalid client request");
             }
+            Console.WriteLine("HEYYYYYYYYYYYYYYYYYYx2");
 
             var user = await _userRepository.GetUserByEmailAsync(logIn.Email);
+            Console.WriteLine("HEYYYYYYYYYYYYYYYYYYx2"+logIn);
             if (user == null) { 
                 return Unauthorized();
             }

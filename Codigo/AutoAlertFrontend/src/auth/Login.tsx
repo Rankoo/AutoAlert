@@ -13,9 +13,10 @@ export function Login() {
     toggleShowPassword,
     showPassword,
     rememberMe,
-    setRememberMe,
+    toggleRememberMe,
     register,
-    onSubmit
+    onSubmit,
+    logInMutation
   } = useLogin()
 
   return (
@@ -55,6 +56,7 @@ export function Login() {
                 Email
               </Label>
               <Input
+                disabled={logInMutation.isPending}
                 {...register("user")}
                 id="email"
                 type="email"
@@ -71,6 +73,7 @@ export function Login() {
               </Label>
               <div className="relative">
                 <Input
+                  disabled={logInMutation.isPending}
                   id="password"
                   {...register("password")}
                   type={showPassword ? 'text' : 'password'}
@@ -98,7 +101,7 @@ export function Login() {
                 <Checkbox
                   id="remember"
                   checked={rememberMe}
-                  onCheckedChange={(checked: boolean) => setRememberMe(checked)}
+                  onCheckedChange={(checked: boolean) => toggleRememberMe(checked)}
                 />
                 <Label
                   htmlFor="remember"
@@ -119,6 +122,7 @@ export function Login() {
 
             {/* Login Button */}
             <Button
+              disabled={logInMutation.isPending}
               type="submit"
               className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
             >

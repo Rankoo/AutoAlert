@@ -20,9 +20,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder => builder
-            .AllowAnyOrigin()  // Permitir cualquier origen
+            .WithOrigins("http://localhost:3000")
             .AllowAnyMethod()  // Permitir cualquier metodo HTTP
-            .AllowAnyHeader()); // Permitir cualquier cabecera
+            .AllowAnyHeader()
+            .AllowCredentials()); // Permitir cualquier cabecera
 });
 
 // Validate JWT config early to fail fast and avoid nullable warnings

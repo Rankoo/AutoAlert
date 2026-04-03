@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { logInAction } from "../../services/actions/auth";
+import { toast } from "react-toastify";
 
 type FormValues = {
   user: string
@@ -8,23 +11,64 @@ type FormValues = {
 
 export const useLogin = () => {
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(()=>!!localStorage.getItem("userRemembered"))
+
+  
+  const { register, handleSubmit, watch } = useForm<FormValues>({ defaultValues: {user: localStorage.getItem("userRemembered") || '', password: ''}})
+  
+  const logInMutation = useMutation({
+    mutationFn: logInAction,
+    onSuccess: () => {
+      handleRememberUser(rememberMe)
+      
+      toast.success("Inicio de sesión exitoso")
+    },
+  })
+
+
+  const userValue = watch("user")
+
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev)
   }
 
-  const { register, handleSubmit } = useForm<FormValues>({ defaultValues: {user: '', password: ''}})
-
-  const onSubmit = handleSubmit((data) => console.log({ data }));
-
+  const toggleRememberMe = (checked: boolean) => {
+    setRememberMe(checked)
+    if (!checked) {
+      localStorage.removeItem("userRemembered")
+    }
+  }
   
+  const handleRememberUser = (approved: boolean) => {
+    if (approved) {
+      localStorage.setItem("userRemembered", userValue)
+    } else {
+      localStorage.removeItem("userRemembered")
+    }
+  }
+
+
+  const onSubmit = handleSubmit((data) => {
+    logInMutation.mutate({ email: data.user, password: data.password })
+  });
+
+
+  useEffect(() => {
+    if (!userValue) {
+      setRememberMe(false)
+    }
+  },[userValue])
+
   return {
     toggleShowPassword,
     showPassword,
     rememberMe,
-    setRememberMe,
+    toggleRememberMe,
     register,
-    onSubmit
+    onSubmit,
+    logInMutation,
+
+    
   }
 }

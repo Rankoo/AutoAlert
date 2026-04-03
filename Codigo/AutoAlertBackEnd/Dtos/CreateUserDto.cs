@@ -27,7 +27,9 @@ namespace AutoAlertBackEnd.Dtos
         [MaxLength(50)]
         public string DocumentNumber { get; set; } = string.Empty;
 
+        [Required]
         public Guid? DocumentTypeId { get; set; }
+
         public Guid? CompanyId { get; set; }
 
         [Required]
