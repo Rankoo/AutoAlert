@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/groups")]
 public class GroupsController : ControllerBase
 {
     private readonly IGroupRepository _repo;
@@ -17,7 +17,8 @@ public class GroupsController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllGroups")]
+    [Authorize(Policy = "VIEW_GROUPS")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Groups>>> GetAll()
     {
         try {
@@ -30,15 +31,14 @@ public class GroupsController : ControllerBase
         }
     }
 
-    [HttpGet("GetGroupById/{id}")]
+    [Authorize(Policy = "VIEW_GROUPS")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Groups>> Get(Guid id)
     {
         try {
             var item = await _repo.GetByIdAsync(id);
-            if (item == null) return
-                NotFound();
-            return 
-                Ok(item);
+            if (item == null) return NotFound();
+            return Ok(item);
         }
         catch (Exception e)
         {
@@ -46,7 +46,8 @@ public class GroupsController : ControllerBase
         }
     }
 
-    [HttpPost("CreateGroup")]
+    [Authorize(Policy = "CREATE_GROUPS")]
+    [HttpPost]
     public async Task<ActionResult<Groups>> Create(Groups group)
     {
         try {
@@ -59,7 +60,8 @@ public class GroupsController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateGroup/{id}")]
+    [Authorize(Policy = "EDIT_GROUPS")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Groups group)
     {
         try {
@@ -76,7 +78,8 @@ public class GroupsController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteGroup/{id}")]
+    [Authorize(Policy = "DELETE_GROUPS")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try {
@@ -84,7 +87,6 @@ public class GroupsController : ControllerBase
             if (!ok)
                 return NotFound();
             return NoContent();
-
         }
         catch (Exception e)
         {

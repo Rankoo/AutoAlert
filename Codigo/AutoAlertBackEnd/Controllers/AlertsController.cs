@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/alerts")]
 public class AlertsController : ControllerBase
 {
     private readonly IAlertRepository _repo;
@@ -17,7 +17,8 @@ public class AlertsController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllAlerts")]
+    [Authorize(Policy = "VIEW_ALERTS")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Alerts>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class AlertsController : ControllerBase
         }
     }
 
-    [HttpGet("GetAlertById/{id}")]
+    [Authorize(Policy = "VIEW_ALERTS")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Alerts>> Get(Guid id)
     {
         try
@@ -46,21 +48,8 @@ public class AlertsController : ControllerBase
         }
     }
 
-    [HttpGet("GetAlertsByServiceId/{serviceId}")]
-    public async Task<ActionResult<IEnumerable<Alerts>>> GetByServiceId(Guid serviceId)
-    {
-        try
-        {
-            var list = await _repo.GetByServiceIdAsync(serviceId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetScheduledAlerts")]
+    [Authorize(Policy = "VIEW_ALERTS")]
+    [HttpGet("scheduled")]
     public async Task<ActionResult<IEnumerable<Alerts>>> GetScheduledAlerts([FromQuery] DateTime? fromDate = null)
     {
         try
@@ -74,7 +63,8 @@ public class AlertsController : ControllerBase
         }
     }
 
-    [HttpPost("CreateAlert")]
+    [Authorize(Policy = "CREATE_ALERTS")]
+    [HttpPost]
     public async Task<ActionResult<Alerts>> Create(Alerts alert)
     {
         try
@@ -88,7 +78,8 @@ public class AlertsController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateAlert/{id}")]
+    [Authorize(Policy = "EDIT_ALERTS")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Alerts alert)
     {
         try
@@ -106,7 +97,8 @@ public class AlertsController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteAlert/{id}")]
+    [Authorize(Policy = "DELETE_ALERTS")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -121,4 +113,3 @@ public class AlertsController : ControllerBase
         }
     }
 }
-

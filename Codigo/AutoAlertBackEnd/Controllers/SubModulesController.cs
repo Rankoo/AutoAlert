@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/submodules")]
 public class SubModulesController : ControllerBase
 {
     private readonly ISubModuleRepository _repo;
@@ -17,7 +17,8 @@ public class SubModulesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllSubModules")]
+    [Authorize(Policy = "VIEW_SUBMODULES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<SubModules>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class SubModulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetSubModuleById/{id}")]
+    [Authorize(Policy = "VIEW_SUBMODULES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<SubModules>> Get(Guid id)
     {
         try
@@ -46,21 +48,8 @@ public class SubModulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetSubModulesByModuleId/{moduleId}")]
-    public async Task<ActionResult<IEnumerable<SubModules>>> GetByModuleId(Guid moduleId)
-    {
-        try
-        {
-            var list = await _repo.GetByModuleIdAsync(moduleId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateSubModule")]
+    [Authorize(Policy = "CREATE_SUBMODULES")]
+    [HttpPost]
     public async Task<ActionResult<SubModules>> Create(SubModules subModule)
     {
         try
@@ -74,7 +63,8 @@ public class SubModulesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateSubModule/{id}")]
+    [Authorize(Policy = "EDIT_SUBMODULES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, SubModules subModule)
     {
         try
@@ -92,7 +82,8 @@ public class SubModulesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteSubModule/{id}")]
+    [Authorize(Policy = "DELETE_SUBMODULES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -107,4 +98,3 @@ public class SubModulesController : ControllerBase
         }
     }
 }
-

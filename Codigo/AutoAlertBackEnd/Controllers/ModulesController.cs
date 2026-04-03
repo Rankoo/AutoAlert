@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/modules")]
 public class ModulesController : ControllerBase
 {
     private readonly IModuleRepository _repo;
@@ -17,7 +17,8 @@ public class ModulesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllModules")]
+    [Authorize(Policy = "VIEW_MODULES")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Modules>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class ModulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetModuleById/{id}")]
+    [Authorize(Policy = "VIEW_MODULES")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Modules>> Get(Guid id)
     {
         try
@@ -46,7 +48,8 @@ public class ModulesController : ControllerBase
         }
     }
 
-    [HttpPost("CreateModule")]
+    [Authorize(Policy = "CREATE_MODULES")]
+    [HttpPost]
     public async Task<ActionResult<Modules>> Create(Modules module)
     {
         try
@@ -60,7 +63,8 @@ public class ModulesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateModule/{id}")]
+    [Authorize(Policy = "EDIT_MODULES")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, Modules module)
     {
         try
@@ -78,7 +82,8 @@ public class ModulesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteModule/{id}")]
+    [Authorize(Policy = "DELETE_MODULES")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -93,4 +98,3 @@ public class ModulesController : ControllerBase
         }
     }
 }
-

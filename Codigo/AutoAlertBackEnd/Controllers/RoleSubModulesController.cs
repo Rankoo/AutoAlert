@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/permissions/roles")]
 public class RoleSubModulesController : ControllerBase
 {
     private readonly IRoleSubModuleRepository _repo;
@@ -17,7 +17,8 @@ public class RoleSubModulesController : ControllerBase
         _repo = repo;
     }
 
-    [HttpGet("GetAllRoleSubModules")]
+    [Authorize(Policy = "VIEW_PERMISSIONS")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<RoleSubModules>>> GetAll()
     {
         try
@@ -31,7 +32,8 @@ public class RoleSubModulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetRoleSubModuleById/{id}")]
+    [Authorize(Policy = "VIEW_PERMISSIONS")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<RoleSubModules>> Get(Guid id)
     {
         try
@@ -46,35 +48,8 @@ public class RoleSubModulesController : ControllerBase
         }
     }
 
-    [HttpGet("GetRoleSubModulesByRoleId/{roleId}")]
-    public async Task<ActionResult<IEnumerable<RoleSubModules>>> GetByRoleId(Guid roleId)
-    {
-        try
-        {
-            var list = await _repo.GetByRoleIdAsync(roleId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpGet("GetRoleSubModulesBySubModuleId/{subModuleId}")]
-    public async Task<ActionResult<IEnumerable<RoleSubModules>>> GetBySubModuleId(Guid subModuleId)
-    {
-        try
-        {
-            var list = await _repo.GetBySubModuleIdAsync(subModuleId);
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
-    }
-
-    [HttpPost("CreateRoleSubModule")]
+    [Authorize(Policy = "UPDATE_PERMISSIONS")]
+    [HttpPost]
     public async Task<ActionResult<RoleSubModules>> Create(RoleSubModules roleSubModule)
     {
         try
@@ -88,7 +63,8 @@ public class RoleSubModulesController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateRoleSubModule/{id}")]
+    [Authorize(Policy = "UPDATE_PERMISSIONS")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, RoleSubModules roleSubModule)
     {
         try
@@ -106,7 +82,8 @@ public class RoleSubModulesController : ControllerBase
         }
     }
 
-    [HttpDelete("DeleteRoleSubModule/{id}")]
+    [Authorize(Policy = "UPDATE_PERMISSIONS")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -121,4 +98,3 @@ public class RoleSubModulesController : ControllerBase
         }
     }
 }
-
