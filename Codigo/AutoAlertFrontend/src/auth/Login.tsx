@@ -16,7 +16,8 @@ export function Login() {
     toggleRememberMe,
     register,
     onSubmit,
-    logInMutation
+    logInMutation,
+    errors
   } = useLogin()
 
   return (
@@ -60,6 +61,7 @@ export function Login() {
                 {...register("user")}
                 id="email"
                 type="email"
+                aria-invalid={!!errors.user}
                 placeholder="ejemplo@email.com"
                 className="h-12"
                 required
@@ -75,6 +77,7 @@ export function Login() {
                 <Input
                   disabled={logInMutation.isPending}
                   id="password"
+                  aria-invalid={!!errors.password}
                   {...register("password")}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••"
@@ -93,6 +96,11 @@ export function Login() {
                   )}
                 </button>
               </div>
+              {errors.password?.message && (
+                <p className="text-red-600 dark:text-red-400 text-sm mt-1" role="alert" aria-live="polite">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Remember Me & Forgot Password */}

@@ -40,11 +40,9 @@ namespace AutoAlertBackEnd.Controllers
             {
                 return BadRequest("Invalid client request");
             }
-            Console.WriteLine("HEYYYYYYYYYYYYYYYYYYx2");
 
             var user = await _userRepository.GetUserByEmailAsync(logIn.Email);
-            Console.WriteLine("HEYYYYYYYYYYYYYYYYYYx2"+logIn);
-            if (user == null) { 
+            if (user == null) {
                 return Unauthorized();
             }
             if (BCrypt.Net.BCrypt.Verify(logIn.Password, user.PasswordHash))

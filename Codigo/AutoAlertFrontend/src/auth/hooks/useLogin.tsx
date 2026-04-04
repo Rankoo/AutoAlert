@@ -14,7 +14,7 @@ export const useLogin = () => {
   const [rememberMe, setRememberMe] = useState(()=>!!localStorage.getItem("userRemembered"))
 
   
-  const { register, handleSubmit, watch } = useForm<FormValues>({ defaultValues: {user: localStorage.getItem("userRemembered") || '', password: ''}})
+  const { register, handleSubmit, watch, setError, formState: { errors } } = useForm<FormValues>({ defaultValues: {user: localStorage.getItem("userRemembered") || '', password: ''}})
   
   const logInMutation = useMutation({
     mutationFn: logInAction,
@@ -23,6 +23,16 @@ export const useLogin = () => {
       
       toast.success("Inicio de sesión exitoso")
     },
+    onError: (error) => {
+      const errorMessage = (error as any)?.status === 401 
+        ? "Error al iniciar sesión. Verifica tus credenciales." 
+        : (error as any)?.message || " Error inesperado. Por favor, intenta nuevamente."
+
+      toast.error(errorMessage)
+      setError("user", { type: "server", message: errorMessage });
+      setError("password", { type: "server", message: errorMessage });
+
+    }
   })
 
 
@@ -68,7 +78,7 @@ export const useLogin = () => {
     register,
     onSubmit,
     logInMutation,
-
+    errors
     
   }
 }

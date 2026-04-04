@@ -100,7 +100,7 @@ app.Use(async (context, next) =>
 {
     await next();
 
-    if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
+    if (context.Response.StatusCode == StatusCodes.Status401Unauthorized && !context.Response.HasStarted)
     {
         context.Response.ContentType = "application/json";
         var result = JsonSerializer.Serialize(
