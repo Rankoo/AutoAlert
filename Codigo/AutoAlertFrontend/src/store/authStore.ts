@@ -2,8 +2,6 @@ import { create } from 'zustand';
 
 type AuthState = {
   isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
   setAuthenticated: (value: boolean) => void;
 };
 
@@ -14,20 +12,6 @@ const getInitialAuthState = () => {
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: getInitialAuthState(),
-  login: () =>
-    set(() => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('isAuthenticated', 'true');
-      }
-      return { isAuthenticated: true };
-    }),
-  logout: () =>
-    set(() => {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('isAuthenticated');
-      }
-      return { isAuthenticated: false };
-    }),
   setAuthenticated: (value: boolean) =>
     set(() => {
       if (typeof window !== 'undefined') {

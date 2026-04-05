@@ -8,8 +8,8 @@ namespace AutoAlertBackEnd.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid ModuleId { get; set; }
-    [Required, MaxLength(100)]
-    public required string Name { get; set; }
+        [Required, MaxLength(100)]
+        public required string Name { get; set; }
 
         public Modules? Module { get; set; }
         public ICollection<RoleSubModules>? RoleSubModules { get; set; }

@@ -1,5 +1,6 @@
 using System;
 using AutoAlertBackEnd.Context;
+using AutoAlertBackEnd.Dtos;
 using AutoAlertBackEnd.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -59,5 +60,22 @@ public class RoleRepository : IRoleRepository
     {
         return await _context.Roles
             .FirstOrDefaultAsync(r => r.Name == name);
+    }
+
+
+    public async Task<UserRolePermissionsDto> GetPermissionByUserAsync(Users user)
+    {
+        var roles = await _context.Roles.FirstOrDefaultAsync(r => r.Id == user.RoleId);
+
+        var specialPermissions = await _context.SubModules.Include(sm => sm.UserSubmodules)
+            .Where(rm => rm.UserSubmodules != null && rm.UserSubmodules.Any(us => us.UserId == user.Id))
+            .Select(rm => rm.Name)
+            .ToListAsync();
+    
+        return new UserRolePermissionsDto
+        {
+            Role = roles!.Name,
+            SpecialPermissions = specialPermissions,
+        };
     }
 }

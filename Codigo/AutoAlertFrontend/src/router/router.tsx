@@ -8,7 +8,9 @@ export function AppRouter() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<HomeRedirect />} >
-          <Route path="/" element={<p>Home</p>} />
+          <>
+            <Route path="/" element={<p>Home</p>} />
+          </>
         </Route>
         {/* <Routere path="/" element={<HomeRedirect />} />
 

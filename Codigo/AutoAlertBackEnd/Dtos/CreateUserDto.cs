@@ -28,11 +28,10 @@ namespace AutoAlertBackEnd.Dtos
         public string DocumentNumber { get; set; } = string.Empty;
 
         [Required]
-        public Guid? DocumentTypeId { get; set; }
+        public Guid DocumentTypeId { get; set; }
 
         public Guid? CompanyId { get; set; }
 
-        [Required]
         [MaxLength(100)]
         public required string Position { get; set; } = string.Empty;
 

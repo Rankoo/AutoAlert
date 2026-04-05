@@ -1,8 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { logInAction } from "../../services/actions/auth";
+import { logInAction } from "../../services/actions/authActions";
 import { toast } from "react-toastify";
+import { useNavigate} from "react-router";
+import { useAuthStore } from "../../store/authStore";
 
 type FormValues = {
   user: string
@@ -12,16 +14,28 @@ type FormValues = {
 export const useLogin = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(()=>!!localStorage.getItem("userRemembered"))
+  const { setAuthenticated } = useAuthStore()
 
-  
-  const { register, handleSubmit, watch, setError, formState: { errors } } = useForm<FormValues>({ defaultValues: {user: localStorage.getItem("userRemembered") || '', password: ''}})
+  const navigate = useNavigate()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setError,
+    formState: { errors }
+  } = useForm<FormValues>({ 
+    defaultValues:{
+        user: localStorage.getItem("userRemembered") || '', password: ''
+    }
+  })
   
   const logInMutation = useMutation({
     mutationFn: logInAction,
     onSuccess: () => {
+      setAuthenticated(true)
       handleRememberUser(rememberMe)
-      
       toast.success("Inicio de sesión exitoso")
+      navigate("/")
     },
     onError: (error) => {
       const errorMessage = (error as any)?.status === 401 
@@ -35,9 +49,7 @@ export const useLogin = () => {
     }
   })
 
-
   const userValue = watch("user")
-
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev)
@@ -57,7 +69,6 @@ export const useLogin = () => {
       localStorage.removeItem("userRemembered")
     }
   }
-
 
   const onSubmit = handleSubmit((data) => {
     logInMutation.mutate({ email: data.user, password: data.password })
