@@ -12,11 +12,14 @@ type FormValues = {
 }
 
 export const useLogin = () => {
+  // react hooks
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(()=>!!localStorage.getItem("userRemembered"))
+  
+  // libraries hooks
   const { setAuthenticated } = useAuthStore()
-
   const navigate = useNavigate()
+
   const {
     register,
     handleSubmit,
@@ -49,8 +52,10 @@ export const useLogin = () => {
     }
   })
 
+  // Watch the user input to manage "Remember Me" functionality
   const userValue = watch("user")
 
+  // functions
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev)
   }
@@ -74,7 +79,7 @@ export const useLogin = () => {
     logInMutation.mutate({ email: data.user, password: data.password })
   });
 
-
+  // effects
   useEffect(() => {
     if (!userValue) {
       setRememberMe(false)

@@ -818,6 +818,10 @@
   .ml-auto {
     margin-left: auto;
   }
+  
+  .ml-4 {
+    margin-left: calc(var(--spacing) * 4);
+  }
 
   .line-clamp-2 {
     -webkit-line-clamp: 2;
