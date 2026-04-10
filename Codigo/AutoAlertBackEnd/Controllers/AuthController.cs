@@ -54,14 +54,56 @@ namespace AutoAlertBackEnd.Controllers
                 Response.Cookies.Append("access_token", token, new CookieOptions
                 {
                     HttpOnly = true,
-                    // Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    Secure = true,
+                    // SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.None,
                     Expires = DateTime.UtcNow.AddHours(1)
+                });
+
+                var refreshToken = Guid.NewGuid().ToString();
+                Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddDays(7)
                 });
                 return Ok();
             }
 
             return Unauthorized();
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
+        {            
+            var refreshToken = Request.Cookies["refresh_token"];
+            
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized();
+
+            // TODO: validate in database if refresh token is valid and not expired, then generate new JWT token and return it in cookie
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var user = await _userRepository.GetUserByIdAsync(Guid.Parse(userId));
+            
+            if (user == null)
+                return Unauthorized();
+
+            var newJwtToken = GenerateJwtForUser(user);
+
+            Response.Cookies.Append("access_token", newJwtToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddHours(1)
+            });
+
+            return Ok();
         }
 
         // Endpoint to get current user info
@@ -104,6 +146,15 @@ namespace AutoAlertBackEnd.Controllers
             });
         }
 
+        [Authorize]
+        [HttpPost("logOut")]
+        public IActionResult LogOut()
+        {
+            Response.Cookies.Delete("access_token");
+            Response.Cookies.Delete("refresh_token");
+            return Ok();
+        }
+
         private string GenerateJwtForUser(Users user)
         {
             var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key missing");
@@ -126,7 +177,7 @@ namespace AutoAlertBackEnd.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = issuer,
                 Audience = audience
