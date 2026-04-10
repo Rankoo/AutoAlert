@@ -37,7 +37,12 @@ export const useLogin = () => {
     onSuccess: () => {
       setAuthenticated(true)
       handleRememberUser(rememberMe)
-      toast.success("Inicio de sesión exitoso")
+      toast.success("Inicio de sesión exitoso",{
+        autoClose: 750,
+        hideProgressBar: true,
+        closeOnClick: true,
+        position: "bottom-right",
+      })
       navigate("/")
     },
     onError: (error) => {
