@@ -3,14 +3,15 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { NotificationsDropdown } from '../../components/NotificationsDropdown';
 import { UserDropdown } from './UserDropdown';
+import useLogout from './hooks/useLogout';
 
 interface HeaderProps {
   toggleSidebar: () => void;
-  onLogout?: () => void;
 }
 
 
-export function Header({ toggleSidebar, onLogout }: HeaderProps) {
+export function Header({ toggleSidebar }: HeaderProps) {
+  const { logOutMutation } = useLogout()
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -34,7 +35,7 @@ export function Header({ toggleSidebar, onLogout }: HeaderProps) {
         
         <div className="flex items-center gap-3">
           
-          <UserDropdown onLogout={onLogout} />
+          <UserDropdown onLogout={logOutMutation.mutate} />
         </div>
       </div>
     </header>

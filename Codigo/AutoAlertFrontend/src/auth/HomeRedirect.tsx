@@ -34,7 +34,6 @@ export const HomeRedirect = () => {
       <Layout >
         <Outlet />
       </Layout>
-      <p>Bienvenido, {currentUserInfoQuery.data.user.names} {currentUserInfoQuery.data.user.lastNames}!</p>
     </>
   )
 }

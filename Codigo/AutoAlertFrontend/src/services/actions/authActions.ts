@@ -28,3 +28,8 @@ export const getCurrentUserInfoAction = async ():Promise<CurrentUserInfo> => {
   const { data } = await autoAlertBackend.get<Promise<CurrentUserInfo>>("/auth/me");
   return data;
 }
+
+export const logOutAction = async () => {
+  const { data } = await autoAlertBackend.post("/auth/logOut");
+  return data;
+}
