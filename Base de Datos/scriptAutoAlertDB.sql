@@ -274,10 +274,10 @@ GO
 insert into Roles (Name) values ('ADMIN'),('SUPERVISOR'),('USER'),('AUDITOR');
 GO
 
-INSERT INTO Modules("Name") VALUES ('USERS'),('SERVICES'),('STORES'),('COMPANIES');
+INSERT INTO Modules(Name) VALUES ('USERS'),('SERVICES'),('STORES'),('COMPANIES');
 GO
 
-INSERT INTO SubModules ("ModuleId","Name") VALUES 
+INSERT INTO SubModules (ModuleId,Name) VALUES 
 ((SELECT Id FROM Modules WHERE Name = 'USERS'), 'VIEW_USERS'),
 ((SELECT Id FROM Modules WHERE Name = 'USERS'), 'EDIT_USERS'),
 ((SELECT Id FROM Modules WHERE Name = 'USERS'), 'DELETE_USERS'),
@@ -297,7 +297,7 @@ INSERT INTO SubModules ("ModuleId","Name") VALUES
 ((SELECT Id FROM Modules WHERE Name = 'COMPANIES'), 'DELETE_COMPANIES');
 GO
 
-INSERT INTO RoleSubModules("RoleId","SubModuleId","IsEnabled") VALUES
+INSERT INTO RoleSubModules(RoleId,SubModuleId,IsEnabled) VALUES
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'VIEW_USERS'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'EDIT_USERS'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'DELETE_USERS'), 1),

@@ -89,11 +89,8 @@ docker run -d -p 5000:80 \
 Windows PowerShell:
 
 ```
-docker build -t autoalert-backend .
-docker run -d -p 5000:80 `
-	-e ASPNETCORE_ENVIRONMENT=Development `
-	-v ${PWD}\appsettings.Development.json:/app/appsettings.Development.json `
-	--name autoalert-backend autoalert-backend
+docker build -t autoalert_backend .
+docker run -d -p 5000:80 -e ASPNETCORE_ENVIRONMENT=Development -v ${PWD}\appsettings.Development.json:/app/appsettings.development.json --name autoalert-backend autoalert_backend
 ```
 
 > Nota: montar el archivo permite que la aplicación use la configuración local (connection strings, claves, etc.) sin bakearlas en la imagen.
