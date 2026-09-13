@@ -1,6 +1,9 @@
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "../auth/Login";
 import { HomeRedirect } from "../auth/HomeRedirect";
+import { UserManagement } from "../pages/users/components/UserManagement";
+import { Services } from "../components/ServicesPayments";
+import { Stores } from "../pages/stores/Stores";
 
 export function AppRouter() {
   return (
@@ -8,9 +11,10 @@ export function AppRouter() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<HomeRedirect />} >
-          <>
-            <Route path="/" element={<p>Home</p>} />
-          </>
+          <Route path="/" element={<Navigate to="/users" replace />} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/stores" element={<Stores />} />
         </Route>
         {/* <Routere path="/" element={<HomeRedirect />} />
 

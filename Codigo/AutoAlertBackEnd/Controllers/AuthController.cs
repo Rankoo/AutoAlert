@@ -50,6 +50,8 @@ namespace AutoAlertBackEnd.Controllers
             }
             if (BCrypt.Net.BCrypt.Verify(logIn.Password, user.PasswordHash))
             {
+                await _userRepository.UpdateLastLoginAsync(user.Id);
+
                 var token = GenerateJwtForUser(user);
                 Response.Cookies.Append("access_token", token, new CookieOptions
                 {

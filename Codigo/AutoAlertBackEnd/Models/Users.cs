@@ -37,6 +37,7 @@ namespace AutoAlertBackEnd.Models
         public string? Position { get; set; }
         public bool IsActive { get; set; } = true;
         public bool ChangePassword { get; set; } = true;
+        public DateTimeOffset? LastLoginAt { get; set; }
 
         // Navigation properties
         [JsonIgnore]

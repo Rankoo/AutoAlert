@@ -14,9 +14,56 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Users>> GetAllUsersAsync()
+    public async Task<PagedUsersDto> GetAllUsersAsync(
+        int page,
+        int pageSize,
+        Guid? roleId = null,
+        string? search = null,
+        bool? isActive = null)
     {
-        return await _context.Users.ToListAsync();
+        var usersQuery = _context.Users.AsNoTracking();
+
+        if (roleId.HasValue)
+            usersQuery = usersQuery.Where(u => u.RoleId == roleId.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = $"%{search.Trim()}%";
+            usersQuery = usersQuery.Where(u =>
+                EF.Functions.Like(u.Names, searchTerm) ||
+                (u.LastNames != null && EF.Functions.Like(u.LastNames, searchTerm)) ||
+                EF.Functions.Like(u.Email, searchTerm));
+        }
+
+        if (isActive.HasValue)
+            usersQuery = usersQuery.Where(u => u.IsActive == isActive.Value);
+
+        var projectedUsers = usersQuery
+            .OrderBy(u => u.Id)
+            .Select(u => new UserListDto
+            {
+                Id = u.Id,
+                RoleName = u.Role != null ? u.Role.Name : null,
+                Names = u.Names,
+                LastNames = u.LastNames,
+                Email = u.Email,
+                IsActive = u.IsActive,
+                LastLoginAt = u.LastLoginAt
+            });
+        var totalItems = await projectedUsers.CountAsync();
+        var users = await projectedUsers
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedUsersDto
+        {
+            Users = users,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+        };
     }
 
     public async Task<Users?> GetUserByIdAsync(Guid id)
@@ -57,14 +104,28 @@ public class UserRepository : IUserRepository
         return user;
     }
 
-    public async Task<Users?> UpdateUserAsync(Users user)
+    public async Task<Users?> UpdateUserAsync(Guid id, UpdateUserDto user)
     {
-        var existingUser = await _context.Users.FindAsync(user.Id);
+        var existingUser = await _context.Users.FindAsync(id);
         
         if (existingUser == null)
             return null;
 
-        _context.Entry(existingUser).CurrentValues.SetValues(user);
+        existingUser.Names = user.Names;
+        existingUser.LastNames = user.LastNames;
+        existingUser.Email = user.Email;
+        existingUser.PhoneNumber = user.PhoneNumber;
+        existingUser.Address = user.Address;
+        existingUser.DocumentNumber = user.DocumentNumber;
+        existingUser.DocumentTypeId = user.DocumentTypeId;
+        existingUser.RoleId = user.RoleId;
+        existingUser.Position = user.Position;
+        existingUser.ChangePassword = user.ChangePassword;
+        existingUser.IsActive = user.IsActive;
+
+        if (!string.IsNullOrWhiteSpace(user.Password))
+            existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
         await _context.SaveChangesAsync();
         
         return existingUser;
@@ -85,5 +146,30 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    public async Task UpdateLastLoginAsync(Guid userId)
+    {
+        await _context.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(u => u.LastLoginAt, DateTimeOffset.UtcNow));
+    }
+
+    public async Task<UserQuantitiesDto> GetUserQuantitiesAsync()
+    {
+        var now = DateTime.Now;
+        var sevenDaysAgo = now.AddDays(-7);
+
+        return new UserQuantitiesDto
+        {
+            TotalUsers = await _context.Users.CountAsync(),
+            ActiveUsers = await _context.Users.CountAsync(u => u.IsActive),
+            Administrators = await _context.Users
+                .CountAsync(u => u.Role != null &&
+                    (u.Role.Name == "Administrador" || u.Role.Name == "Admin")),
+            UsersCreatedLastSevenDays = await _context.Users
+                .CountAsync(u => u.CreatedAt >= sevenDaysAgo && u.CreatedAt <= now)
+        };
     }
 }

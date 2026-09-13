@@ -101,6 +101,7 @@ CREATE TABLE Users (
     Position NVARCHAR(100) NULL,
     IsActive BIT DEFAULT 1,
     ChangePassword BIT DEFAULT 1,
+    LastLoginAt datetimeoffset NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(Id),

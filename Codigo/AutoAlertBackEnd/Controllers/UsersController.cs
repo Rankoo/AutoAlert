@@ -11,18 +11,50 @@ namespace AutoAlertBackEnd.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
+    private readonly IUserCatalogRepository _userCatalogRepository;
 
-    public UsersController(IUserRepository userRepository)
+    public UsersController(
+        IUserRepository userRepository,
+        IUserCatalogRepository userCatalogRepository)
     {
         _userRepository = userRepository;
+        _userCatalogRepository = userCatalogRepository;
+    }
+
+    [Authorize(Policy = "VIEW_USERS")]
+    [HttpGet("catalogs")]
+    public async Task<ActionResult<UserCatalogsDto>> GetUserCatalogs()
+    {
+        try
+        {
+            var catalogs = await _userCatalogRepository.GetUserCatalogsAsync();
+            return Ok(catalogs);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
     [Authorize(Policy = "VIEW_USERS")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
+    public async Task<ActionResult<PagedUsersDto>> GetUsers(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] Guid? roleId = null,
+        [FromQuery] string? search = null,
+        [FromQuery] bool? isActive = null)
     {
         try {
-            var users = await _userRepository.GetAllUsersAsync();
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest("page debe ser mayor que 0 y pageSize debe estar entre 1 y 100.");
+
+            var users = await _userRepository.GetAllUsersAsync(
+                page,
+                pageSize,
+                roleId,
+                search,
+                isActive);
             return Ok(users);
         }
         catch (Exception e)
@@ -70,13 +102,10 @@ public class UsersController : ControllerBase
 
     [Authorize(Policy = "EDIT_USERS")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(Guid id, Users user)
+    public async Task<IActionResult> UpdateUser(Guid id, UpdateUserDto user)
     {
         try {
-            if (id != user.Id)
-                return BadRequest();
-
-            var updatedUser = await _userRepository.UpdateUserAsync(user);
+            var updatedUser = await _userRepository.UpdateUserAsync(id, user);
             if (updatedUser == null)
                 return NotFound();
 
@@ -116,6 +145,20 @@ public class UsersController : ControllerBase
                 return NotFound();
 
             return Ok(user);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
+    }
+
+    [Authorize(Policy = "VIEW_USERS")]
+    [HttpGet("quantities")]
+    public async Task<ActionResult<UserQuantitiesDto>> GetUsersQuantities()
+    {
+        try {
+            var quantities = await _userRepository.GetUserQuantitiesAsync();
+            return Ok(quantities);
         }
         catch (Exception e)
         {

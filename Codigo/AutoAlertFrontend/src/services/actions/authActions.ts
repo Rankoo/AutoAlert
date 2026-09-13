@@ -1,4 +1,5 @@
 import { autoAlertBackend } from "../../api/AutoAlertBackend";
+import type { Permission } from "../../utils/permissions";
 
 interface LoginCredentials {
   email: string;
@@ -21,11 +22,11 @@ export interface UserInfo {
   lastNames:   string;
   email:       string;
   role:        string;
-  permissions: any[];
+  permissions: Permission[];
 }
 
 export const getCurrentUserInfoAction = async ():Promise<CurrentUserInfo> => {
-  const { data } = await autoAlertBackend.get<Promise<CurrentUserInfo>>("/auth/me");
+  const { data } = await autoAlertBackend.get<CurrentUserInfo>("/auth/me");
   return data;
 }
 
