@@ -8,12 +8,12 @@ namespace AutoAlertBackEnd.Repositories;
 public class AlertRepository : IAlertRepository
 {
     private readonly AutoAlertContext _context;
-    private readonly INotificationDeliveryService _notificationDeliveryService;
+    private readonly INotificationDeliveryQueue _notificationDeliveryQueue;
 
-    public AlertRepository(AutoAlertContext context, INotificationDeliveryService notificationDeliveryService)
+    public AlertRepository(AutoAlertContext context, INotificationDeliveryQueue notificationDeliveryQueue)
     {
         _context = context;
-        _notificationDeliveryService = notificationDeliveryService;
+        _notificationDeliveryQueue = notificationDeliveryQueue;
     }
 
     public async Task<IEnumerable<Alerts>> GetAllAsync()
@@ -76,14 +76,7 @@ public class AlertRepository : IAlertRepository
         await _context.SaveChangesAsync();
 
         foreach (var notification in notifications)
-        {
-            var recipient = recipients.First(user => user.Id == notification.UserId);
-            var delivery = await _notificationDeliveryService.DeliverAsync(notification, recipient);
-            notification.Result = delivery.Result;
-            notification.SentAt = delivery.SentAt;
-            notification.UpdatedAt = DateTime.Now;
-        }
-        await _context.SaveChangesAsync();
+            await _notificationDeliveryQueue.EnqueueAsync(notification.Id);
         return alert;
     }
 

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, CheckCheck, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { autoAlertBackend } from '@/api/AutoAlertBackend';
+import { useCurrentUserInfoStore } from '@/store/currentUserInfoStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,16 +28,19 @@ const formatAlert = (alert: Alert) => `Vence ${new Date(`${alert.dueDate.slice(0
 
 export function Notifications() {
   const client = useQueryClient();
+  const userInfo = useCurrentUserInfoStore((state) => state.userInfo);
+  const isAdministrator = ['admin', 'administrador'].includes(userInfo?.user.role.toLocaleLowerCase('es-CO') ?? '');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [form, setForm] = useState<NotificationForm>(emptyForm);
-  const notifications = useQuery({ queryKey: ['notifications', 'mine'], queryFn: async () => (await autoAlertBackend.get<Notification[]>('/notifications/mine')).data });
+  const notificationPath = isAdministrator ? '/notifications' : '/notifications/mine';
+  const notifications = useQuery({ queryKey: ['notifications', isAdministrator ? 'all' : 'mine'], queryFn: async () => (await autoAlertBackend.get<Notification[]>(notificationPath)).data });
   const alerts = useQuery({ queryKey: ['alerts', 'notifications'], queryFn: async () => (await autoAlertBackend.get<Alert[]>('/alerts')).data, enabled: isCreateOpen });
   const stores = useQuery({ queryKey: ['stores', 'notifications'], queryFn: async () => (await autoAlertBackend.get<StoresResponse>('/stores', { params: { page: 1, pageSize: 100 } })).data.stores, enabled: isCreateOpen });
   const services = useQuery({ queryKey: ['services', 'notifications'], queryFn: async () => (await autoAlertBackend.get<ServicesResponse>('/services', { params: { page: 1, pageSize: 100 } })).data.services, enabled: isCreateOpen });
   const users = useQuery({ queryKey: ['users', 'notifications'], queryFn: async () => (await autoAlertBackend.get<UsersResponse>('/users', { params: { page: 1, pageSize: 100, isActive: true } })).data.users, enabled: isCreateOpen });
-  const refresh = () => client.invalidateQueries({ queryKey: ['notifications', 'mine'] });
+  const refresh = () => client.invalidateQueries({ queryKey: ['notifications'] });
   const closeCreate = () => { setIsCreateOpen(false); setSelectedStoreId(''); setForm(emptyForm); };
   const markAsRead = useMutation({ mutationFn: (id: string) => autoAlertBackend.patch(`/notifications/mine/${id}/read`), onSuccess: refresh, onError: () => toast.error('No fue posible marcar la notificación como leída') });
   const markAllAsRead = useMutation({ mutationFn: () => autoAlertBackend.patch('/notifications/mine/read'), onSuccess: refresh, onError: () => toast.error('No fue posible marcar las notificaciones como leídas') });

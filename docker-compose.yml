@@ -32,9 +32,9 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
-      - SendGrid__ApiKey=${SENDGRID_API_KEY}
-      - SendGrid__SenderEmail=${SENDGRID_SENDER_EMAIL}
-      - SendGrid__SenderName=${SENDGRID_SENDER_NAME}
+      - Resend__ApiKey=${RESEND_API_KEY}
+      - Resend__SenderEmail=${RESEND_SENDER_EMAIL}
+      - Resend__SenderName=${RESEND_SENDER_NAME}
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5162:80"

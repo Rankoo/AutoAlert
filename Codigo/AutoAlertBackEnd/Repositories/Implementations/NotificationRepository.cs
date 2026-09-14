@@ -9,12 +9,12 @@ public class NotificationRepository : INotificationRepository
 {
     private static readonly string[] SupportedChannels = ["Email", "WhatsApp", "SMS"];
     private readonly AutoAlertContext _context;
-    private readonly INotificationDeliveryService _notificationDeliveryService;
+    private readonly INotificationDeliveryQueue _notificationDeliveryQueue;
 
-    public NotificationRepository(AutoAlertContext context, INotificationDeliveryService notificationDeliveryService)
+    public NotificationRepository(AutoAlertContext context, INotificationDeliveryQueue notificationDeliveryQueue)
     {
         _context = context;
-        _notificationDeliveryService = notificationDeliveryService;
+        _notificationDeliveryQueue = notificationDeliveryQueue;
     }
 
     public async Task<IEnumerable<Notifications>> GetAllAsync()
@@ -62,12 +62,7 @@ public class NotificationRepository : INotificationRepository
         notification.Result ??= "Pendiente";
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
-
-        var delivery = await _notificationDeliveryService.DeliverAsync(notification, recipient);
-        notification.Result = delivery.Result;
-        notification.SentAt = delivery.SentAt;
-        notification.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
+        await _notificationDeliveryQueue.EnqueueAsync(notification.Id);
         return notification;
     }
 

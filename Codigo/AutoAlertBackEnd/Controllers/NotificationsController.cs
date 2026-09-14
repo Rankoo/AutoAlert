@@ -13,10 +13,17 @@ namespace AutoAlertBackEnd.Controllers;
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationRepository _repo;
+    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public NotificationsController(INotificationRepository repo)
+    public NotificationsController(
+        INotificationRepository repo,
+        IUserRepository userRepository,
+        IRoleRepository roleRepository)
     {
         _repo = repo;
+        _userRepository = userRepository;
+        _roleRepository = roleRepository;
     }
 
     [Authorize(Policy = "VIEW_NOTIFICATIONS")]
@@ -57,6 +64,9 @@ public class NotificationsController : ControllerBase
     {
         try
         {
+            if (!await IsAdministratorAsync())
+                return Forbid();
+
             var list = await _repo.GetAllAsync();
             return Ok(list);
         }
@@ -64,6 +74,21 @@ public class NotificationsController : ControllerBase
         {
             return BadRequest(e);
         }
+    }
+
+    private async Task<bool> IsAdministratorAsync()
+    {
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return false;
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user is null)
+            return false;
+
+        var role = await _roleRepository.GetPermissionByUserAsync(user);
+        return role.Role.Equals("ADMIN", StringComparison.OrdinalIgnoreCase)
+            || role.Role.Equals("Administrador", StringComparison.OrdinalIgnoreCase)
+            || role.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase);
     }
 
     [Authorize(Policy = "VIEW_NOTIFICATIONS")]

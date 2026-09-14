@@ -48,6 +48,10 @@ namespace AutoAlertBackEnd.Controllers
             if (user == null) {
                 return Unauthorized();
             }
+            if (!user.IsActive)
+            {
+                return Unauthorized();
+            }
             if (BCrypt.Net.BCrypt.Verify(logIn.Password, user.PasswordHash))
             {
                 await _userRepository.UpdateLastLoginAsync(user.Id);
@@ -125,6 +129,10 @@ namespace AutoAlertBackEnd.Controllers
             if (user == null)
             {
                 return NotFound();
+            }
+            if (!user.IsActive)
+            {
+                return Unauthorized();
             }
 
             var role = await _roleRepository.GetPermissionByUserAsync(user);

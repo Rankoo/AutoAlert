@@ -34,10 +34,12 @@ namespace AutoAlertBackEnd
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<IAlertRepository, AlertRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
-            services.Configure<SendGridOptions>(_configuration.GetSection(SendGridOptions.SectionName));
-            services.AddHttpClient<IEmailNotificationSender, SendGridEmailNotificationSender>(client =>
+            services.AddSingleton<INotificationDeliveryQueue, NotificationDeliveryQueue>();
+            services.AddHostedService<NotificationDeliveryWorker>();
+            services.Configure<ResendOptions>(_configuration.GetSection(ResendOptions.SectionName));
+            services.AddHttpClient<IEmailNotificationSender, ResendEmailNotificationSender>(client =>
             {
-                client.BaseAddress = new Uri("https://api.sendgrid.com/");
+                client.BaseAddress = new Uri("https://api.resend.com/");
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
             services.AddScoped<INotificationDeliveryService, NotificationDeliveryService>();
