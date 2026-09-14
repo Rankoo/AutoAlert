@@ -187,7 +187,6 @@ CREATE TABLE Alerts (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     ServiceId UNIQUEIDENTIFIER NOT NULL,        -- Servicio asociado a la alerta
     ScheduledAt DATETIME NOT NULL,              -- Fecha y hora programada para el envío
-    Channel NVARCHAR(50),                       -- Canal de envío (WhatsApp, Email, SMS)
     Status NVARCHAR(50),                        -- Estado (Programada, Enviada, Fallida)
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
@@ -210,6 +209,7 @@ CREATE TABLE Notifications (
     UserId UNIQUEIDENTIFIER NOT NULL,           -- Usuario destinatario
     SentAt DATETIME,                            -- Fecha real de envío
     Result NVARCHAR(100),                       -- Resultado (Enviado, Fallido, Reintento)
+    Channel NVARCHAR(50),                       -- Canal de envío (WhatsApp, Email, SMS)         
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (AlertId) REFERENCES Alerts(Id),

@@ -1,5 +1,6 @@
 using AutoAlertBackEnd.Context;
 using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.NotificationDelivery;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutoAlertBackEnd.Repositories;
@@ -7,10 +8,12 @@ namespace AutoAlertBackEnd.Repositories;
 public class AlertRepository : IAlertRepository
 {
     private readonly AutoAlertContext _context;
+    private readonly INotificationDeliveryService _notificationDeliveryService;
 
-    public AlertRepository(AutoAlertContext context)
+    public AlertRepository(AutoAlertContext context, INotificationDeliveryService notificationDeliveryService)
     {
         _context = context;
+        _notificationDeliveryService = notificationDeliveryService;
     }
 
     public async Task<IEnumerable<Alerts>> GetAllAsync()
@@ -54,18 +57,31 @@ public class AlertRepository : IAlertRepository
         _context.Alerts.Add(alert);
         await _context.SaveChangesAsync();
 
-        var recipients = await _context.Users.Where(u => u.IsActive).Select(u => u.Id).ToListAsync();
+        var recipients = await _context.Users.Where(u => u.IsActive).ToListAsync();
         var dueDate = alert.DueDate.ToString("dd/MM/yyyy");
-        foreach (var userId in recipients)
+        var notifications = new List<Notifications>();
+        foreach (var recipient in recipients)
         {
-            _context.Notifications.Add(new Notifications
+            notifications.Add(new Notifications
             {
                 AlertId = alert.Id,
-                UserId = userId,
+                UserId = recipient.Id,
                 Title = "Pago próximo a vencer",
                 Message = $"{service.Name} de {service.Store?.Name ?? "la tienda"} vence el {dueDate} por {alert.Amount:C0}.",
+                Channel = "Email",
                 Result = "Pendiente"
             });
+        }
+        _context.Notifications.AddRange(notifications);
+        await _context.SaveChangesAsync();
+
+        foreach (var notification in notifications)
+        {
+            var recipient = recipients.First(user => user.Id == notification.UserId);
+            var delivery = await _notificationDeliveryService.DeliverAsync(notification, recipient);
+            notification.Result = delivery.Result;
+            notification.SentAt = delivery.SentAt;
+            notification.UpdatedAt = DateTime.Now;
         }
         await _context.SaveChangesAsync();
         return alert;

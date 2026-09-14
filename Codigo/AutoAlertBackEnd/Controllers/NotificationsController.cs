@@ -93,7 +93,8 @@ public class NotificationsController : ControllerBase
                 AlertId = request.AlertId,
                 UserId = request.UserId,
                 Title = request.Title,
-                Message = request.Message
+                Message = request.Message,
+                Channel = request.Channel
             };
             var created = await _repo.CreateAsync(notification);
             return CreatedAtAction(nameof(Get), new { id = created.Id }, created);

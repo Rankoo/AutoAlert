@@ -219,6 +219,7 @@ namespace AutoAlertBackEnd.Context
                 e.ToTable("Notifications");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Result).HasMaxLength(100);
+                e.Property(x => x.Channel).HasMaxLength(50);
                 e.Property(x => x.Title).HasMaxLength(150);
                 e.Property(x => x.Message).HasMaxLength(500);
                 e.Property(x => x.IsRead).HasDefaultValue(false);

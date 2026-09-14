@@ -1,16 +1,20 @@
 using AutoAlertBackEnd.Context;
 using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.NotificationDelivery;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutoAlertBackEnd.Repositories;
 
 public class NotificationRepository : INotificationRepository
 {
+    private static readonly string[] SupportedChannels = ["Email", "WhatsApp", "SMS"];
     private readonly AutoAlertContext _context;
+    private readonly INotificationDeliveryService _notificationDeliveryService;
 
-    public NotificationRepository(AutoAlertContext context)
+    public NotificationRepository(AutoAlertContext context, INotificationDeliveryService notificationDeliveryService)
     {
         _context = context;
+        _notificationDeliveryService = notificationDeliveryService;
     }
 
     public async Task<IEnumerable<Notifications>> GetAllAsync()
@@ -44,15 +48,25 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<Notifications> CreateAsync(Notifications notification)
     {
-        if (!await _context.Users.AnyAsync(u => u.Id == notification.UserId && u.IsActive))
+        var recipient = await _context.Users.FirstOrDefaultAsync(u => u.Id == notification.UserId && u.IsActive);
+        if (recipient is null)
             throw new InvalidOperationException("El usuario seleccionado no existe o está inactivo.");
         if (!await _context.Alerts.AnyAsync(a => a.Id == notification.AlertId))
             throw new InvalidOperationException("La alerta seleccionada no existe.");
 
         notification.Title = string.IsNullOrWhiteSpace(notification.Title) ? "Nueva notificación" : notification.Title.Trim();
         notification.Message = string.IsNullOrWhiteSpace(notification.Message) ? "Tienes una notificación pendiente." : notification.Message.Trim();
+        if (!SupportedChannels.Contains(notification.Channel, StringComparer.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Selecciona un canal de envío válido.");
+        notification.Channel = SupportedChannels.First(channel => channel.Equals(notification.Channel, StringComparison.OrdinalIgnoreCase));
         notification.Result ??= "Pendiente";
         _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+        var delivery = await _notificationDeliveryService.DeliverAsync(notification, recipient);
+        notification.Result = delivery.Result;
+        notification.SentAt = delivery.SentAt;
+        notification.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         return notification;
     }

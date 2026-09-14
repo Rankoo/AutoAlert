@@ -21,7 +21,8 @@ namespace AutoAlertBackEnd.Models
         [MaxLength(100)]
         public string? Result { get; set; }
 
-        
+        [MaxLength(50)]
+        public string? Channel { get; set; }
 
         public Alerts? Alert { get; set; }
         public Users? User { get; set; }

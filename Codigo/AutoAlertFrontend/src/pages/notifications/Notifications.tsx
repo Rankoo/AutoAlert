@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-type Notification = { id: string; title: string | null; message: string | null; createdAt: string; isRead: boolean };
+type Notification = { id: string; title: string | null; message: string | null; channel: string | null; createdAt: string; isRead: boolean };
 type Alert = { id: string; dueDate: string; amount: number; status: string; serviceId: string };
 type Store = { id: string; name: string };
 type Service = { id: string; storeId: string; name: string };
@@ -19,9 +19,9 @@ type User = { id: string; names: string; lastNames: string | null; email: string
 type UsersResponse = { users: User[] };
 type StoresResponse = { stores: Store[] };
 type ServicesResponse = { services: Service[] };
-type NotificationForm = { alertId: string; userId: string; title: string; message: string };
+type NotificationForm = { alertId: string; userId: string; title: string; message: string; channel: string };
 
-const emptyForm: NotificationForm = { alertId: '', userId: '', title: '', message: '' };
+const emptyForm: NotificationForm = { alertId: '', userId: '', title: '', message: '', channel: '' };
 const formatDate = (value: string) => new Date(value).toLocaleString('es-CO');
 const formatAlert = (alert: Alert) => `Vence ${new Date(`${alert.dueDate.slice(0, 10)}T00:00:00`).toLocaleDateString('es-CO')} · ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(alert.amount)}`;
 
@@ -61,8 +61,8 @@ export function Notifications() {
   );
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!form.alertId || !form.userId || !form.title.trim() || !form.message.trim()) {
-      toast.error('Completa la alerta, el usuario, el título y el mensaje');
+    if (!form.alertId || !form.userId || !form.title.trim() || !form.message.trim() || !form.channel) {
+      toast.error('Completa la alerta, el usuario, el canal, el título y el mensaje');
       return;
     }
     create.mutate();
@@ -127,18 +127,19 @@ export function Notifications() {
                 <th className="px-4 py-3 text-left text-gray-600">Notificación</th>
                 <th className="px-4 py-3 text-left text-gray-600">Mensaje</th>
                 <th className="px-4 py-3 text-left text-gray-600">Fecha</th>
+                <th className="px-4 py-3 text-left text-gray-600">Canal</th>
                 <th className="px-4 py-3 text-left text-gray-600">Estado</th>
                 <th className="px-4 py-3 text-left text-gray-600">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {notifications.isLoading ? (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-500">Cargando notificaciones...</td></tr>
+                <tr><td colSpan={6} className="py-8 text-center text-gray-500">Cargando notificaciones...</td></tr>
               ) : notifications.isError ? (
-                <tr><td colSpan={5} className="py-8 text-center text-red-600">No fue posible cargar las notificaciones.</td></tr>
+                <tr><td colSpan={6} className="py-8 text-center text-red-600">No fue posible cargar las notificaciones.</td></tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500">
+                  <td colSpan={6} className="py-8 text-center text-gray-500">
                     <Bell className="mx-auto mb-3 h-8 w-8" />
                     {items.length === 0 ? 'No tienes notificaciones.' : 'No se encontraron notificaciones.'}
                   </td>
@@ -148,6 +149,7 @@ export function Notifications() {
                   <td className="px-4 py-3 text-gray-900">{item.title ?? 'Alerta de pago'}</td>
                   <td className="max-w-md truncate px-4 py-3 text-gray-600">{item.message ?? 'Tienes una alerta pendiente.'}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-gray-600">{formatDate(item.createdAt)}</td>
+                  <td className="px-4 py-3 text-gray-600">{item.channel ?? 'Sin canal'}</td>
                   <td className="px-4 py-3">
                     <span className={item.isRead ? 'text-gray-600' : 'text-blue-700'}>
                       {item.isRead ? 'Leída' : 'No leída'}
@@ -229,6 +231,7 @@ export function Notifications() {
               </Select>
             </div>
             <div><Label htmlFor="notification-user">Usuario destinatario *</Label><Select value={form.userId} onValueChange={(userId) => setForm({ ...form, userId })}><SelectTrigger id="notification-user"><SelectValue placeholder={users.isLoading ? 'Cargando usuarios...' : 'Selecciona un usuario'} /></SelectTrigger><SelectContent>{users.data?.map((user) => <SelectItem key={user.id} value={user.id}>{`${user.names} ${user.lastNames ?? ''}`.trim()} · {user.email}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label htmlFor="notification-channel">Canal *</Label><Select value={form.channel} onValueChange={(channel) => setForm({ ...form, channel })}><SelectTrigger id="notification-channel"><SelectValue placeholder="Selecciona un canal" /></SelectTrigger><SelectContent><SelectItem value="Email">Email</SelectItem><SelectItem value="WhatsApp">WhatsApp</SelectItem><SelectItem value="SMS">SMS</SelectItem></SelectContent></Select></div>
             <div><Label htmlFor="notification-title">Título *</Label><Input id="notification-title" maxLength={150} value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ej. Recordatorio de pago" /></div>
             <div><Label htmlFor="notification-message">Mensaje *</Label><Textarea id="notification-message" maxLength={500} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Escribe el aviso para el usuario" /></div>
             {(alerts.isError || stores.isError || services.isError || users.isError) && <p className="text-sm text-red-600">No fue posible cargar los datos necesarios. Verifica tus permisos.</p>}

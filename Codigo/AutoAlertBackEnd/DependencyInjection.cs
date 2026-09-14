@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using AutoAlertBackEnd.Context;
 using AutoAlertBackEnd.Repositories;
+using AutoAlertBackEnd.NotificationDelivery;
 
 namespace AutoAlertBackEnd
 {
@@ -33,6 +34,13 @@ namespace AutoAlertBackEnd
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<IAlertRepository, AlertRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.Configure<SendGridOptions>(_configuration.GetSection(SendGridOptions.SectionName));
+            services.AddHttpClient<IEmailNotificationSender, SendGridEmailNotificationSender>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.sendgrid.com/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+            services.AddScoped<INotificationDeliveryService, NotificationDeliveryService>();
             services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
             services.AddScoped<IUserGroupRepository, UserGroupRepository>();
             services.AddScoped<ILogRepository, LogRepository>();

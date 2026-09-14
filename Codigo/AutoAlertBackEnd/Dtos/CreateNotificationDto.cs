@@ -15,4 +15,7 @@ public class CreateNotificationDto
 
     [Required, MaxLength(500)]
     public string Message { get; set; } = string.Empty;
+
+    [Required, MaxLength(50)]
+    public string Channel { get; set; } = string.Empty;
 }
