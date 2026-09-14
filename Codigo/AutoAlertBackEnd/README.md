@@ -1,5 +1,9 @@
 # AutoAlertBackEnd
 
+## Precarga para desarrollo
+
+Con la base de datos creada, establece `Seed:Enabled` en `true` (o la variable de entorno `Seed__Enabled=true`) y ejecuta la API una vez. La precarga es idempotente y crea el usuario `admin@autoalert.local` con contraseña `Admin123*`, además de tiendas, servicios, alertas y notificaciones de demostración. Después vuelve a establecer la opción en `false`.
+
 Proyecto backend para AutoAlert — API REST construida con .NET 8.
 
 ## Descripción

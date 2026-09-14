@@ -67,15 +67,31 @@ public class RoleRepository : IRoleRepository
     {
         var roles = await _context.Roles.FirstOrDefaultAsync(r => r.Id == user.RoleId);
 
-        var specialPermissions = await _context.SubModules.Include(sm => sm.UserSubmodules)
-            .Where(rm => rm.UserSubmodules!.Any(us => us.UserId == user.Id))
-            .Select(rm => rm.Name)
+        var permissions = await _context.RoleSubModules
+            .Where(rsm => rsm.RoleId == user.RoleId && rsm.IsEnabled && rsm.SubModule != null)
+            .Select(rsm => rsm.SubModule!.Name)
             .ToListAsync();
+
+        var overrides = await _context.UserSubmodules
+            .Include(us => us.SubModule)
+            .Where(us => us.UserId == user.Id)
+            .ToListAsync();
+
+        foreach (var item in overrides)
+        {
+            if (item.SubModule is null)
+                continue;
+
+            if (item.IsEnabled)
+                permissions.Add(item.SubModule.Name);
+            else
+                permissions.Remove(item.SubModule.Name);
+        }
     
         return new UserRolePermissionsDto
         {
-            Role = roles!.Name,
-            SpecialPermissions = specialPermissions,
+            Role = roles?.Name ?? string.Empty,
+            SpecialPermissions = permissions.Distinct().ToList(),
         };
     }
 }

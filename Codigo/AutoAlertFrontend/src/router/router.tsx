@@ -2,8 +2,10 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Login } from "../auth/Login";
 import { HomeRedirect } from "../auth/HomeRedirect";
 import { UserManagement } from "../pages/users/components/UserManagement";
-import { Services } from "../components/ServicesPayments";
+import { Services } from "../pages/services/Services";
 import { Stores } from "../pages/stores/Stores";
+import { Alerts } from "../pages/alerts/Alerts";
+import { Notifications } from "../pages/notifications/Notifications";
 
 export function AppRouter() {
   return (
@@ -15,6 +17,8 @@ export function AppRouter() {
           <Route path="/users" element={<UserManagement />} />
           <Route path="/services" element={<Services />} />
           <Route path="/stores" element={<Stores />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Route>
         {/* <Routere path="/" element={<HomeRedirect />} />
 

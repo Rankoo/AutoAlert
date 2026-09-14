@@ -28,7 +28,7 @@ public class AlertsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -44,7 +44,7 @@ public class AlertsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -59,7 +59,7 @@ public class AlertsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -74,7 +74,7 @@ public class AlertsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -93,7 +93,7 @@ public class AlertsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -109,7 +109,7 @@ public class AlertsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(new { message = e.Message });
         }
     }
 }

@@ -7,7 +7,7 @@ namespace AutoAlertBackEnd.Models
     public class Stores : BaseEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public Guid CompanyId { get; set; }
+        public Guid? CompanyId { get; set; }
     [Required, MaxLength(100)]
     public required string Name { get; set; }
 

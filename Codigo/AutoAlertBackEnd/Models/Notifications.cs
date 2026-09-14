@@ -10,6 +10,14 @@ namespace AutoAlertBackEnd.Models
         public Guid UserId { get; set; }
         public DateTime? SentAt { get; set; }
 
+        [MaxLength(150)]
+        public string? Title { get; set; }
+
+        [MaxLength(500)]
+        public string? Message { get; set; }
+
+        public bool IsRead { get; set; }
+
         [MaxLength(100)]
         public string? Result { get; set; }
 

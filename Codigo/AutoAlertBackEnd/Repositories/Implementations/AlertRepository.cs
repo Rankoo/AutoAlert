@@ -36,15 +36,37 @@ public class AlertRepository : IAlertRepository
         
         if (fromDate.HasValue)
         {
-            query = query.Where(a => a.ScheduledAt >= fromDate.Value);
+            query = query.Where(a => a.DueDate >= fromDate.Value);
         }
         
-        return await query.OrderBy(a => a.ScheduledAt).ToListAsync();
+        return await query.OrderBy(a => a.DueDate).ToListAsync();
     }
 
     public async Task<Alerts> CreateAsync(Alerts alert)
     {
+        var service = await _context.Services
+            .Include(s => s.Store)
+            .FirstOrDefaultAsync(s => s.Id == alert.ServiceId);
+        if (service == null)
+            throw new InvalidOperationException("El servicio seleccionado no existe.");
+
+        alert.Status = string.IsNullOrWhiteSpace(alert.Status) ? "Pendiente" : alert.Status;
         _context.Alerts.Add(alert);
+        await _context.SaveChangesAsync();
+
+        var recipients = await _context.Users.Where(u => u.IsActive).Select(u => u.Id).ToListAsync();
+        var dueDate = alert.DueDate.ToString("dd/MM/yyyy");
+        foreach (var userId in recipients)
+        {
+            _context.Notifications.Add(new Notifications
+            {
+                AlertId = alert.Id,
+                UserId = userId,
+                Title = "Pago próximo a vencer",
+                Message = $"{service.Name} de {service.Store?.Name ?? "la tienda"} vence el {dueDate} por {alert.Amount:C0}.",
+                Result = "Pendiente"
+            });
+        }
         await _context.SaveChangesAsync();
         return alert;
     }
@@ -62,6 +84,12 @@ public class AlertRepository : IAlertRepository
     {
         var existing = await _context.Alerts.FindAsync(id);
         if (existing == null) return false;
+
+        var notifications = await _context.Notifications
+            .Where(notification => notification.AlertId == id)
+            .ToListAsync();
+
+        _context.Notifications.RemoveRange(notifications);
         _context.Alerts.Remove(existing);
         await _context.SaveChangesAsync();
         return true;

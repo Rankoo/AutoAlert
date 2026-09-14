@@ -17,6 +17,11 @@ export const ROLE_PERMISSIONS = {
     'EDIT_COMPANIES',
     'VIEW_STORES',
     'EDIT_USERS',
+    'VIEW_ALERTS',
+    'CREATE_ALERTS',
+    'EDIT_ALERTS',
+    'DELETE_ALERTS',
+    'VIEW_NOTIFICATIONS',
   ],
   Supervisor: [
     'DELETE_SERVICES',
@@ -81,8 +86,12 @@ export type Role = keyof typeof ROLE_PERMISSIONS;
 export type Permission = (typeof ROLE_PERMISSIONS)[Role][number];
 
 export const getRolePermissions = (role?: string): readonly Permission[] => {
-  if (role && role in ROLE_PERMISSIONS) {
-    return ROLE_PERMISSIONS[role as Role];
+  const matchedRole = Object.keys(ROLE_PERMISSIONS).find(
+    (key) => key.toLowerCase() === role?.toLowerCase(),
+  ) as Role | undefined;
+
+  if (matchedRole) {
+    return ROLE_PERMISSIONS[matchedRole];
   }
 
   return ROLE_PERMISSIONS.User;

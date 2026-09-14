@@ -1,12 +1,13 @@
-using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.Dtos;
 
 namespace AutoAlertBackEnd.Repositories;
 
 public interface IStoreRepository
 {
-    Task<IEnumerable<Stores>> GetAllAsync();
-    Task<Stores?> GetByIdAsync(Guid id);
-    Task<Stores> CreateAsync(Stores store);
-    Task<Stores?> UpdateAsync(Stores store);
+    Task<PagedStoresDto> GetAllAsync(int page, int pageSize, string? search = null);
+    Task<StoreDto?> GetByIdAsync(Guid id);
+    Task<StoreQuantitiesDto> GetQuantitiesAsync();
+    Task<StoreDto> CreateAsync(CreateStoreDto store);
+    Task<StoreDto?> UpdateAsync(Guid id, UpdateStoreDto store);
     Task<bool> DeleteAsync(Guid id);
 }

@@ -1,4 +1,4 @@
-using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.Dtos;
 using AutoAlertBackEnd.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,57 +18,87 @@ public class StoresController : ControllerBase
     }
 
     [Authorize(Policy = "VIEW_STORES")]
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Stores>>> GetAll()
+    [HttpGet("quantities")]
+    public async Task<ActionResult<StoreQuantitiesDto>> GetQuantities()
     {
-        var list = await _repo.GetAllAsync();
-        return Ok(list);
+        try
+        {
+            var quantities = await _repo.GetQuantitiesAsync();
+            return Ok(quantities);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [Authorize(Policy = "VIEW_STORES")]
+    [HttpGet]
+    public async Task<ActionResult<PagedStoresDto>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null)
+    {
+        try
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest("page debe ser mayor que 0 y pageSize debe estar entre 1 y 100.");
+
+            var stores = await _repo.GetAllAsync(page, pageSize, search);
+            return Ok(stores);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [Authorize(Policy = "VIEW_STORES")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<Stores>> Get(Guid id)
+    public async Task<ActionResult<StoreDto>> Get(Guid id)
     {
-        try {
+        try
+        {
             var item = await _repo.GetByIdAsync(id);
-            if (item == null) 
+            if (item == null)
                 return NotFound();
             return Ok(item);
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
     [Authorize(Policy = "CREATE_STORES")]
     [HttpPost]
-    public async Task<ActionResult<Stores>> Create(Stores store)
+    public async Task<ActionResult<StoreDto>> Create(CreateStoreDto store)
     {
-        try {
+        try
+        {
             var created = await _repo.CreateAsync(store);
             return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
     [Authorize(Policy = "EDIT_STORES")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, Stores store)
+    public async Task<IActionResult> Update(Guid id, UpdateStoreDto store)
     {
-        try {
-            if (id != store.Id) return BadRequest();
-            var updated = await _repo.UpdateAsync(store);
+        try
+        {
+            var updated = await _repo.UpdateAsync(id, store);
             if (updated == null)
                 return NotFound();
             return NoContent();
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
@@ -76,7 +106,8 @@ public class StoresController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        try {
+        try
+        {
             var ok = await _repo.DeleteAsync(id);
             if (!ok)
                 return NotFound();
@@ -84,7 +115,7 @@ public class StoresController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 }

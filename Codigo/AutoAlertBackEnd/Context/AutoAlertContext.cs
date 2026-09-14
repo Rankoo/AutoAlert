@@ -68,7 +68,7 @@ namespace AutoAlertBackEnd.Context
                 e.HasOne(x => x.Company)
                  .WithMany(c => c.Stores)
                  .HasForeignKey(x => x.CompanyId)
-                 .OnDelete(DeleteBehavior.Restrict);
+                 .OnDelete(DeleteBehavior.SetNull);
             });
 
             // DocumentTypes
@@ -189,11 +189,6 @@ namespace AutoAlertBackEnd.Context
                 e.Property(x => x.Name).IsRequired().HasMaxLength(150);
                 e.Property(x => x.Provider).HasMaxLength(100);
                 e.Property(x => x.AccountNumber).HasMaxLength(100);
-                e.Property(x => x.DueDate).HasColumnType("date");
-                e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
-                e.Property(x => x.Status).HasMaxLength(50).HasDefaultValue("Pendiente");
-                e.Property(x => x.LastCheck).HasColumnType("datetime");
-                e.Property(x => x.AlertSent).HasDefaultValue(false);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("GETDATE()");
 
                 e.HasOne(x => x.Store)
@@ -207,9 +202,9 @@ namespace AutoAlertBackEnd.Context
             {
                 e.ToTable("Alerts");
                 e.HasKey(x => x.Id);
-                e.Property(x => x.ScheduledAt).IsRequired();
-                e.Property(x => x.Channel).HasMaxLength(50);
-                e.Property(x => x.Status).HasMaxLength(50);
+                e.Property(x => x.DueDate).HasColumnType("date").IsRequired();
+                e.Property(x => x.Amount).HasColumnType("decimal(18,2)").IsRequired();
+                e.Property(x => x.Status).HasMaxLength(50).HasDefaultValue("Pendiente");
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("GETDATE()");
 
                 e.HasOne(x => x.Service)
@@ -224,17 +219,22 @@ namespace AutoAlertBackEnd.Context
                 e.ToTable("Notifications");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Result).HasMaxLength(100);
+                e.Property(x => x.Title).HasMaxLength(150);
+                e.Property(x => x.Message).HasMaxLength(500);
+                e.Property(x => x.IsRead).HasDefaultValue(false);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("GETDATE()");
+                e.Property(x => x.AlertId).IsRequired();
+                e.Property(x => x.UserId).IsRequired();
 
                 e.HasOne(x => x.Alert)
                  .WithMany(a => a.Notifications)
                  .HasForeignKey(x => x.AlertId)
-                 .OnDelete(DeleteBehavior.Cascade);
+                 .OnDelete(DeleteBehavior.Restrict);
 
                 e.HasOne(x => x.User)
                  .WithMany(u => u.Notifications)
                  .HasForeignKey(x => x.UserId)
-                 .OnDelete(DeleteBehavior.Cascade);
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
             // UserCompanies (composite PK)

@@ -1,7 +1,9 @@
 using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.Dtos;
 using AutoAlertBackEnd.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AutoAlertBackEnd.Controllers;
 
@@ -15,6 +17,38 @@ public class NotificationsController : ControllerBase
     public NotificationsController(INotificationRepository repo)
     {
         _repo = repo;
+    }
+
+    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
+    [HttpGet("mine")]
+    public async Task<ActionResult<IEnumerable<Notifications>>> GetMine()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userId, out var id))
+            return Unauthorized();
+
+        return Ok(await _repo.GetByUserIdAsync(id));
+    }
+
+    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
+    [HttpPatch("mine/{id:guid}/read")]
+    public async Task<IActionResult> MarkAsRead(Guid id)
+    {
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+
+        return await _repo.MarkAsReadAsync(id, userId) ? NoContent() : NotFound();
+    }
+
+    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
+    [HttpPatch("mine/read")]
+    public async Task<ActionResult<object>> MarkAllAsRead()
+    {
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+
+        var updated = await _repo.MarkAllAsReadAsync(userId);
+        return Ok(new { updated });
     }
 
     [Authorize(Policy = "VIEW_NOTIFICATIONS")]
@@ -50,10 +84,17 @@ public class NotificationsController : ControllerBase
 
     [Authorize(Policy = "CREATE_NOTIFICATIONS")]
     [HttpPost]
-    public async Task<ActionResult<Notifications>> Create(Notifications notification)
+    public async Task<ActionResult<Notifications>> Create(CreateNotificationDto request)
     {
         try
         {
+            var notification = new Notifications
+            {
+                AlertId = request.AlertId,
+                UserId = request.UserId,
+                Title = request.Title,
+                Message = request.Message
+            };
             var created = await _repo.CreateAsync(notification);
             return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
@@ -71,6 +112,8 @@ public class NotificationsController : ControllerBase
         {
             if (id != notification.Id)
                 return BadRequest();
+            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || notification.UserId != userId)
+                return Forbid();
             var updated = await _repo.UpdateAsync(notification);
             if (updated == null)
                 return NotFound();
@@ -88,6 +131,11 @@ public class NotificationsController : ControllerBase
     {
         try
         {
+            var notification = await _repo.GetByIdAsync(id);
+            if (notification is null)
+                return NotFound();
+            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || notification.UserId != userId)
+                return Forbid();
             var ok = await _repo.DeleteAsync(id);
             if (!ok) return NotFound();
             return NoContent();

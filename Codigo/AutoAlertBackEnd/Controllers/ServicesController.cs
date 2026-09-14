@@ -1,4 +1,4 @@
-using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.Dtos;
 using AutoAlertBackEnd.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,93 +8,53 @@ namespace AutoAlertBackEnd.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/services")]
-public class ServicesController : ControllerBase
+public class ServicesController(IServiceRepository repo) : ControllerBase
 {
-    private readonly IServiceRepository _repo;
+    [Authorize(Policy = "VIEW_SERVICES")]
+    [HttpGet("catalogs")]
+    public async Task<ActionResult<ServiceCatalogsDto>> GetCatalogs() => Ok(await repo.GetCatalogsAsync());
 
-    public ServicesController(IServiceRepository repo)
-    {
-        _repo = repo;
-    }
+    [Authorize(Policy = "VIEW_SERVICES")]
+    [HttpGet("quantities")]
+    public async Task<ActionResult<ServiceQuantitiesDto>> GetQuantities() => Ok(await repo.GetQuantitiesAsync());
 
     [Authorize(Policy = "VIEW_SERVICES")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Services>>> GetAll()
+    public async Task<ActionResult<PagedServicesDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] Guid? storeId = null)
     {
-        try
-        {
-            var list = await _repo.GetAllAsync();
-            return Ok(list);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
+        if (page < 1 || pageSize is < 1 or > 100) return BadRequest("page debe ser mayor que 0 y pageSize debe estar entre 1 y 100.");
+        return Ok(await repo.GetAllAsync(page, pageSize, search, storeId));
     }
 
     [Authorize(Policy = "VIEW_SERVICES")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<Services>> Get(Guid id)
+    public async Task<ActionResult<ServiceDto>> Get(Guid id)
     {
-        try
-        {
-            var item = await _repo.GetByIdAsync(id);
-            if (item == null) return NotFound();
-            return Ok(item);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
+        var item = await repo.GetByIdAsync(id);
+        return item is null ? NotFound() : Ok(item);
     }
 
     [Authorize(Policy = "CREATE_SERVICES")]
     [HttpPost]
-    public async Task<ActionResult<Services>> Create(Services service)
+    public async Task<ActionResult<ServiceDto>> Create(CreateServiceDto service)
     {
-        try
-        {
-            var created = await _repo.CreateAsync(service);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
+        try { var created = await repo.CreateAsync(service); return CreatedAtAction(nameof(Get), new { id = created.Id }, created); }
+        catch (InvalidOperationException e) { return BadRequest(e.Message); }
     }
 
     [Authorize(Policy = "EDIT_SERVICES")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, Services service)
+    public async Task<IActionResult> Update(Guid id, UpdateServiceDto service)
     {
-        try
-        {
-            if (id != service.Id)
-                return BadRequest();
-            var updated = await _repo.UpdateAsync(service);
-            if (updated == null)
-                return NotFound();
-            return NoContent();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
+        try { return await repo.UpdateAsync(id, service) is null ? NotFound() : NoContent(); }
+        catch (InvalidOperationException e) { return BadRequest(e.Message); }
     }
 
     [Authorize(Policy = "DELETE_SERVICES")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        try
-        {
-            var ok = await _repo.DeleteAsync(id);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e);
-        }
+        try { return await repo.DeleteAsync(id) ? NoContent() : NotFound(); }
+        catch (InvalidOperationException e) { return BadRequest(e.Message); }
     }
 }

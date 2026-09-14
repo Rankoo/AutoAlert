@@ -2,6 +2,7 @@ import {
   LayoutDashboard, 
   Users, 
   CreditCard, 
+  Bell,
   MessageSquare, 
   BarChart3, 
   Store,
@@ -14,10 +15,10 @@ import { NavLink } from 'react-router';
 interface SidebarProps {
   isOpen?: boolean;
 }
-export type ModuleType = 'dashboard' | 'users' | 'services' | 'stores' | 'notifications' | 'reports' | 'support';
+export type ModuleType = 'dashboard' | 'users' | 'services' | 'stores' | 'alerts' | 'notifications' | 'reports' | 'support';
 
 export function Sidebar({ isOpen }: SidebarProps) {
-
+  const isCollapsed = !isOpen;
   const userInfo = useCurrentUserInfoStore((state) => state.userInfo?.user);
   const permissions = userInfo?.permissions ?? [];
   const rolePermissions = getRolePermissions(userInfo?.role);
@@ -43,18 +44,34 @@ export function Sidebar({ isOpen }: SidebarProps) {
     icon: Store,
     permission: 'VIEW_STORES' as Permission,
   },
+  {
+    id: 'alerts' as ModuleType,
+    label: 'Alertas',
+    path: '/alerts',
+    icon: Bell,
+    permission: 'VIEW_ALERTS' as Permission,
+  },
+  {
+    id: 'notifications' as ModuleType,
+    label: 'Notificaciones',
+    path: '/notifications',
+    icon: MessageSquare,
+    permission: 'VIEW_NOTIFICATIONS' as Permission,
+  },
 ];
 
   const visibleMenuItems = menuItems.filter((item) =>
     permissions.includes(item.permission) || rolePermissions.includes(item.permission)
   );
 
-  if (!isOpen) return null;
-
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-      <div className="p-6">
-        <div className="flex flex-row items-center gap-2 mb-8">
+    <aside
+      className={`shrink-0 overflow-y-auto border-r border-slate-200 bg-white transition-[width] duration-200 ease-linear ${
+        isCollapsed ? 'w-20' : 'w-64'
+      }`}
+    >
+      <div className={isCollapsed ? 'p-3' : 'p-6'}>
+        <div className={`mb-8 flex flex-row items-center ${isCollapsed ? 'justify-center' : 'gap-2'}`}>
           <div>
             <div className="relative">
               <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
@@ -64,7 +81,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
               </svg>
             </div>
           </div>
-          <h1 className="text-red-600 text-3xl">Auto Alert</h1>
+          <h1 className={isCollapsed ? 'sr-only' : 'text-3xl text-red-600'}>Auto Alert</h1>
         </div>
         
         <nav className="space-y-1">
@@ -74,14 +91,18 @@ export function Sidebar({ isOpen }: SidebarProps) {
               <NavLink
                 key={item.id}
                 to={item.path}
-                className={({ isActive }) => `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+                title={isCollapsed ? item.label : undefined}
+                aria-label={item.label}
+                className={({ isActive }) => `flex w-full items-center rounded-lg py-2.5 transition-colors ${
+                  isCollapsed ? 'justify-center px-2' : 'gap-3 px-3'
+                } ${
+                  isActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    <span className="text-sm">{item.label}</span>
+                    <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-500'}`} />
+                    <span className={isCollapsed ? 'sr-only' : 'text-sm'}>{item.label}</span>
                   </>
                 )}
               </NavLink>
