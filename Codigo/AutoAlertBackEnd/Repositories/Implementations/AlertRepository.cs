@@ -21,6 +21,14 @@ public class AlertRepository : IAlertRepository
         return await _context.Alerts.ToListAsync();
     }
 
+    public async Task<IEnumerable<Alerts>> GetByUserIdAsync(Guid userId)
+    {
+        return await _context.Alerts
+            .Where(alert => _context.Notifications.Any(notification =>
+                notification.AlertId == alert.Id && notification.UserId == userId))
+            .ToListAsync();
+    }
+
     public async Task<Alerts?> GetByIdAsync(Guid id)
     {
         return await _context.Alerts.FindAsync(id);
@@ -85,6 +93,16 @@ public class AlertRepository : IAlertRepository
         var existing = await _context.Alerts.FindAsync(alert.Id);
         if (existing == null) return null;
         _context.Entry(existing).CurrentValues.SetValues(alert);
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
+    public async Task<Alerts?> UpdateStatusAsync(Guid id, string status)
+    {
+        var existing = await _context.Alerts.FindAsync(id);
+        if (existing is null) return null;
+
+        existing.Status = status;
         await _context.SaveChangesAsync();
         return existing;
     }

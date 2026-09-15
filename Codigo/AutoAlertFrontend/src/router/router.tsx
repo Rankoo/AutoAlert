@@ -6,6 +6,7 @@ import { Services } from "../pages/services/Services";
 import { Stores } from "../pages/stores/Stores";
 import { Alerts } from "../pages/alerts/Alerts";
 import { Notifications } from "../pages/notifications/Notifications";
+import { Profile } from "../pages/profile/Profile";
 
 export function AppRouter() {
   return (
@@ -19,6 +20,7 @@ export function AppRouter() {
           <Route path="/stores" element={<Stores />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
         {/* <Routere path="/" element={<HomeRedirect />} />
 

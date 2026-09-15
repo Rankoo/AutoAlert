@@ -97,8 +97,14 @@ public class NotificationsController : ControllerBase
     {
         try
         {
+            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized();
+
             var item = await _repo.GetByIdAsync(id);
             if (item == null) return NotFound();
+            if (item.UserId != userId && !await IsAdministratorAsync())
+                return NotFound();
+
             return Ok(item);
         }
         catch (Exception e)
@@ -113,6 +119,9 @@ public class NotificationsController : ControllerBase
     {
         try
         {
+            if (!await IsAdministratorAsync())
+                return Forbid();
+
             var notification = new Notifications
             {
                 AlertId = request.AlertId,
@@ -138,7 +147,7 @@ public class NotificationsController : ControllerBase
         {
             if (id != notification.Id)
                 return BadRequest();
-            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || notification.UserId != userId)
+            if (!await IsAdministratorAsync())
                 return Forbid();
             var updated = await _repo.UpdateAsync(notification);
             if (updated == null)
@@ -157,11 +166,9 @@ public class NotificationsController : ControllerBase
     {
         try
         {
-            var notification = await _repo.GetByIdAsync(id);
-            if (notification is null)
-                return NotFound();
-            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || notification.UserId != userId)
+            if (!await IsAdministratorAsync())
                 return Forbid();
+
             var ok = await _repo.DeleteAsync(id);
             if (!ok) return NotFound();
             return NoContent();

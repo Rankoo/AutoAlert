@@ -20,17 +20,20 @@ namespace AutoAlertBackEnd.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IDocumentTypeRepository _documentTypeRepository;
         private readonly IRoleRepository _roleRepository;
         private readonly IRoleSubModuleRepository _roleSubModuleRepository;
         private readonly IConfiguration _configuration;
         public AuthController(
             IUserRepository userRepository,
+            IDocumentTypeRepository documentTypeRepository,
             IRoleRepository roleRepository,
             IRoleSubModuleRepository roleSubModuleRepository,
             IConfiguration configuration
         )
         { 
             _userRepository = userRepository;
+            _documentTypeRepository = documentTypeRepository;
             _roleRepository = roleRepository;
             _configuration = configuration;
             _roleSubModuleRepository = roleSubModuleRepository;
@@ -164,6 +167,67 @@ namespace AutoAlertBackEnd.Controllers
             Response.Cookies.Delete("refresh_token");
             return Ok();
         }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<ActionResult<OwnProfileDto>> GetOwnProfile()
+        {
+            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized();
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user is null || !user.IsActive)
+                return NotFound();
+
+            return Ok(ToOwnProfileDto(user));
+        }
+
+        [Authorize]
+        [HttpPut("profile/password")]
+        public async Task<IActionResult> ChangeOwnPassword(ChangeOwnPasswordDto password)
+        {
+            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized();
+
+            if (password.NewPassword != password.ConfirmPassword)
+                return BadRequest(new { message = "Las contraseñas no coinciden." });
+
+            var updated = await _userRepository.UpdateOwnPasswordAsync(userId, password.NewPassword);
+            return updated ? NoContent() : NotFound();
+        }
+
+        [Authorize]
+        [HttpGet("profile/document-types")]
+        public async Task<IActionResult> GetOwnProfileDocumentTypes()
+        {
+            var documentTypes = await _documentTypeRepository.GetAllAsync();
+            return Ok(documentTypes.Select(documentType => new { documentType.Id, documentType.Name }));
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<ActionResult<OwnProfileDto>> UpdateOwnProfile(UpdateOwnProfileDto profile)
+        {
+            if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized();
+
+            if (profile.DocumentTypeId == Guid.Empty || await _documentTypeRepository.GetByIdAsync(profile.DocumentTypeId) is null)
+                return BadRequest(new { message = "El tipo de documento seleccionado no es válido." });
+
+            var user = await _userRepository.UpdateOwnProfileAsync(userId, profile);
+            return user is null ? NotFound() : Ok(ToOwnProfileDto(user));
+        }
+
+        private static OwnProfileDto ToOwnProfileDto(Users user) => new()
+        {
+            Names = user.Names,
+            LastNames = user.LastNames,
+            Email = user.Email,
+            DocumentTypeId = user.DocumentTypeId,
+            PhoneNumber = user.PhoneNumber,
+            Address = user.Address,
+            DocumentNumber = user.DocumentNumber
+        };
 
         private string GenerateJwtForUser(Users user)
         {

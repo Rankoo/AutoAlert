@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { User, LogOut, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { Button } from '@shared/button';
 import { useCurrentUserInfoStore } from '@/store/currentUserInfoStore';
 import type { CurrentUserInfo } from '../../services/actions/authActions';
@@ -12,6 +13,7 @@ interface UserDropdownProps {
 export function UserDropdown({ onLogout }: UserDropdownProps) {
   const { userInfo } = useCurrentUserInfoStore()
   const { user } = userInfo || {} as CurrentUserInfo;
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -58,18 +60,13 @@ export function UserDropdown({ onLogout }: UserDropdownProps) {
           
           <button
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+              navigate('/profile');
+            }}
           >
             <User className="w-4 h-4" />
             Perfil
-          </button>
-
-          <button
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={() => setIsOpen(false)}
-          >
-            <Settings className="w-4 h-4" />
-            Configuración
           </button>
 
           <div className="border-t border-gray-100 my-1"></div>

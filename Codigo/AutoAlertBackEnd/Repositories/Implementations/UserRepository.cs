@@ -131,6 +131,36 @@ public class UserRepository : IUserRepository
         return existingUser;
     }
 
+    public async Task<Users?> UpdateOwnProfileAsync(Guid id, UpdateOwnProfileDto profile)
+    {
+        var existingUser = await _context.Users.FindAsync(id);
+        if (existingUser is null)
+            return null;
+
+        existingUser.Names = profile.Names.Trim();
+        existingUser.LastNames = profile.LastNames?.Trim();
+        existingUser.PhoneNumber = profile.PhoneNumber?.Trim();
+        existingUser.Address = profile.Address?.Trim();
+        existingUser.DocumentNumber = profile.DocumentNumber?.Trim();
+        existingUser.DocumentTypeId = profile.DocumentTypeId;
+        existingUser.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return existingUser;
+    }
+
+    public async Task<bool> UpdateOwnPasswordAsync(Guid id, string password)
+    {
+        var existingUser = await _context.Users.FindAsync(id);
+        if (existingUser is null)
+            return false;
+
+        existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+        existingUser.ChangePassword = false;
+        existingUser.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> DeleteUserAsync(Guid id)
     {
         var user = await _context.Users.FindAsync(id);

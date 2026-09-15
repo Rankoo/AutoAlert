@@ -86,10 +86,10 @@ export function Notifications() {
               Marcar todas como leídas
             </Button>
           )}
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsCreateOpen(true)}>
+          {isAdministrator && <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsCreateOpen(true)}>
             <Plus className="mr-2 w-4 h-4" />
             Crear notificación
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -166,9 +166,9 @@ export function Notifications() {
                           <CheckCheck className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button size="icon" variant="ghost" title="Eliminar notificación" aria-label="Eliminar notificación" disabled={remove.isPending} onClick={() => remove.mutate(item.id)}>
+                      {isAdministrator && <Button size="icon" variant="ghost" title="Eliminar notificación" aria-label="Eliminar notificación" disabled={remove.isPending} onClick={() => remove.mutate(item.id)}>
                         <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
+                      </Button>}
                     </div>
                   </td>
                 </tr>
@@ -235,7 +235,7 @@ export function Notifications() {
               </Select>
             </div>
             <div><Label htmlFor="notification-user">Usuario destinatario *</Label><Select value={form.userId} onValueChange={(userId) => setForm({ ...form, userId })}><SelectTrigger id="notification-user"><SelectValue placeholder={users.isLoading ? 'Cargando usuarios...' : 'Selecciona un usuario'} /></SelectTrigger><SelectContent>{users.data?.map((user) => <SelectItem key={user.id} value={user.id}>{`${user.names} ${user.lastNames ?? ''}`.trim()} · {user.email}</SelectItem>)}</SelectContent></Select></div>
-            <div><Label htmlFor="notification-channel">Canal *</Label><Select value={form.channel} onValueChange={(channel) => setForm({ ...form, channel })}><SelectTrigger id="notification-channel"><SelectValue placeholder="Selecciona un canal" /></SelectTrigger><SelectContent><SelectItem value="Email">Email</SelectItem><SelectItem value="WhatsApp">WhatsApp</SelectItem><SelectItem value="SMS">SMS</SelectItem></SelectContent></Select></div>
+            <div><Label htmlFor="notification-channel">Canal *</Label><Select value={form.channel} onValueChange={(channel) => setForm({ ...form, channel })}><SelectTrigger id="notification-channel"><SelectValue placeholder="Selecciona un canal" /></SelectTrigger><SelectContent><SelectItem value="Email">Email</SelectItem></SelectContent></Select><p className="mt-1 text-xs text-gray-500">SMS y WhatsApp están desactivados temporalmente.</p></div>
             <div><Label htmlFor="notification-title">Título *</Label><Input id="notification-title" maxLength={150} value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ej. Recordatorio de pago" /></div>
             <div><Label htmlFor="notification-message">Mensaje *</Label><Textarea id="notification-message" maxLength={500} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Escribe el aviso para el usuario" /></div>
             {(alerts.isError || stores.isError || services.isError || users.isError) && <p className="text-sm text-red-600">No fue posible cargar los datos necesarios. Verifica tus permisos.</p>}

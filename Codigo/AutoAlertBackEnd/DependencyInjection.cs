@@ -42,6 +42,12 @@ namespace AutoAlertBackEnd
                 client.BaseAddress = new Uri("https://api.resend.com/");
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
+            services.Configure<TwilioOptions>(_configuration.GetSection(TwilioOptions.SectionName));
+            services.AddHttpClient<IPhoneNotificationSender, TwilioPhoneNotificationSender>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.twilio.com/2010-04-01/Accounts/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
             services.AddScoped<INotificationDeliveryService, NotificationDeliveryService>();
             services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
             services.AddScoped<IUserGroupRepository, UserGroupRepository>();
