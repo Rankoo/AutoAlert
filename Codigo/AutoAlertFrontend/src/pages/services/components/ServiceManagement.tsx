@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react'; import { toast } from 'react-toastify';
 import { autoAlertBackend } from '@/api/AutoAlertBackend';
+import { useCurrentUserInfoStore } from '@/store/currentUserInfoStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,6 +28,8 @@ export function ServiceManagement() {
     const [name, setName] = useState('')
     const [provider, setProvider] = useState('')
     const [account, setAccount] = useState('')
+    const permissions = useCurrentUserInfoStore((state) => state.userInfo?.user.permissions ?? []);
+    const canDelete = permissions.includes('DELETE_SERVICES');
     
     const client = useQueryClient();
     const services = useQuery({ queryKey: ['services'], queryFn: async () => (await autoAlertBackend.get<{ services: Service[] }>('/services', { params: { page: 1, pageSize: 100 } })).data.services });
@@ -38,6 +41,14 @@ export function ServiceManagement() {
     setName('');
     setProvider('');
     setAccount('') } });
+    const remove = useMutation({
+        mutationFn: (id: string) => autoAlertBackend.delete(`/services/${id}`),
+        onSuccess: () => {
+            client.invalidateQueries({ queryKey: ['services'] });
+            toast.success('Servicio eliminado');
+        },
+        onError: (error: any) => toast.error(error.response?.data || 'No fue posible eliminar el servicio'),
+    });
     const submit = (e: FormEvent) => {
         e.preventDefault();
         if (!storeId || !name.trim()) 
@@ -65,12 +76,13 @@ export function ServiceManagement() {
                                 <th className="text-left p-3">Tienda</th>
                                 <th className="text-left p-3">Proveedor</th>
                                 <th className="text-left p-3">Cuenta</th>
+                                {canDelete && <th className="text-right p-3">Acciones</th>}
                             </tr>
                         </thead>
                         <tbody>
                             { services.isLoading ? 
                                 <tr>
-                                    <td colSpan={4}>
+                                    <td colSpan={canDelete ? 5 : 4}>
                                         Cargando...
                                     </td>
                                 </tr> 
@@ -82,6 +94,7 @@ export function ServiceManagement() {
                                             <td>{s.storeName}</td>
                                             <td>{s.provider || '-'}</td>
                                             <td>{s.accountNumber || '-'}</td>
+                                            {canDelete && <td className="p-3 text-right"><Button variant="ghost" size="icon" title="Eliminar servicio" aria-label={`Eliminar ${s.name}`} disabled={remove.isPending} onClick={() => window.confirm(`¿Eliminar el servicio “${s.name}”?`) && remove.mutate(s.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button></td>}
                                         </tr>
                                     )
                                 })}
@@ -89,7 +102,7 @@ export function ServiceManagement() {
                     </table>
                 </Card>
                 <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogContent>
+                    <DialogContent onPointerDownOutside={(event) => event.preventDefault()}>
                         <DialogHeader>
                             <DialogTitle>Nuevo servicio</DialogTitle>
                         </DialogHeader>

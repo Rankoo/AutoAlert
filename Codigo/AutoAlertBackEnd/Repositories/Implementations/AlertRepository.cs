@@ -1,6 +1,5 @@
 using AutoAlertBackEnd.Context;
 using AutoAlertBackEnd.Models;
-using AutoAlertBackEnd.NotificationDelivery;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutoAlertBackEnd.Repositories;
@@ -8,12 +7,10 @@ namespace AutoAlertBackEnd.Repositories;
 public class AlertRepository : IAlertRepository
 {
     private readonly AutoAlertContext _context;
-    private readonly INotificationDeliveryQueue _notificationDeliveryQueue;
 
-    public AlertRepository(AutoAlertContext context, INotificationDeliveryQueue notificationDeliveryQueue)
+    public AlertRepository(AutoAlertContext context)
     {
         _context = context;
-        _notificationDeliveryQueue = notificationDeliveryQueue;
     }
 
     public async Task<IEnumerable<Alerts>> GetAllAsync()
@@ -55,36 +52,13 @@ public class AlertRepository : IAlertRepository
 
     public async Task<Alerts> CreateAsync(Alerts alert)
     {
-        var service = await _context.Services
-            .Include(s => s.Store)
-            .FirstOrDefaultAsync(s => s.Id == alert.ServiceId);
-        if (service == null)
+        var serviceExists = await _context.Services.AnyAsync(s => s.Id == alert.ServiceId);
+        if (!serviceExists)
             throw new InvalidOperationException("El servicio seleccionado no existe.");
 
         alert.Status = string.IsNullOrWhiteSpace(alert.Status) ? "Pendiente" : alert.Status;
         _context.Alerts.Add(alert);
         await _context.SaveChangesAsync();
-
-        var recipients = await _context.Users.Where(u => u.IsActive).ToListAsync();
-        var dueDate = alert.DueDate.ToString("dd/MM/yyyy");
-        var notifications = new List<Notifications>();
-        foreach (var recipient in recipients)
-        {
-            notifications.Add(new Notifications
-            {
-                AlertId = alert.Id,
-                UserId = recipient.Id,
-                Title = "Pago próximo a vencer",
-                Message = $"{service.Name} de {service.Store?.Name ?? "la tienda"} vence el {dueDate} por {alert.Amount:C0}.",
-                Channel = "Email",
-                Result = "Pendiente"
-            });
-        }
-        _context.Notifications.AddRange(notifications);
-        await _context.SaveChangesAsync();
-
-        foreach (var notification in notifications)
-            await _notificationDeliveryQueue.EnqueueAsync(notification.Id);
         return alert;
     }
 

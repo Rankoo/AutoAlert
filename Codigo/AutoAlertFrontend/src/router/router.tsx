@@ -7,6 +7,7 @@ import { Stores } from "../pages/stores/Stores";
 import { Alerts } from "../pages/alerts/Alerts";
 import { Notifications } from "../pages/notifications/Notifications";
 import { Profile } from "../pages/profile/Profile";
+import { AuthorizedRoute, UserHomeRedirect } from "../auth/AuthorizedRoute";
 
 export function AppRouter() {
   return (
@@ -14,13 +15,14 @@ export function AppRouter() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<HomeRedirect />} >
-          <Route path="/" element={<Navigate to="/users" replace />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/stores" element={<Stores />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/" element={<UserHomeRedirect />} />
+          <Route path="/users" element={<AuthorizedRoute permission="VIEW_USERS"><UserManagement /></AuthorizedRoute>} />
+          <Route path="/services" element={<AuthorizedRoute permission="VIEW_SERVICES" allowStandardUser><Services /></AuthorizedRoute>} />
+          <Route path="/stores" element={<AuthorizedRoute permission="VIEW_STORES"><Stores /></AuthorizedRoute>} />
+          <Route path="/alerts" element={<AuthorizedRoute permission="VIEW_ALERTS"><Alerts /></AuthorizedRoute>} />
+          <Route path="/notifications" element={<AuthorizedRoute permission="VIEW_NOTIFICATIONS" allowStandardUser><Notifications /></AuthorizedRoute>} />
+          <Route path="/profile" element={<AuthorizedRoute><Profile /></AuthorizedRoute>} />
+          <Route path="*" element={<Navigate to="/profile" replace />} />
         </Route>
         {/* <Routere path="/" element={<HomeRedirect />} />
 

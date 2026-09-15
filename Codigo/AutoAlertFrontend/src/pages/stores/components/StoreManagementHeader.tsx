@@ -108,7 +108,7 @@ export function StoreManagementHeader({
               </Button>
             </DialogTrigger>
           )}
-          <DialogContent>
+          <DialogContent onPointerDownOutside={(event) => event.preventDefault()}>
             <DialogHeader>
               <DialogTitle>{editing ? 'Editar tienda' : 'Nueva tienda'}</DialogTitle>
               <DialogDescription>Registra los datos básicos de la tienda.</DialogDescription>

@@ -75,6 +75,22 @@ public class NotificationRepository : INotificationRepository
         return existing;
     }
 
+    public async Task<bool> MarkAsReadAsync(Guid id)
+    {
+        var notification = await _context.Notifications.FindAsync(id);
+        if (notification is null)
+            return false;
+
+        if (!notification.IsRead)
+        {
+            notification.IsRead = true;
+            notification.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
     public async Task<bool> MarkAsReadAsync(Guid id, Guid userId)
     {
         var notification = await _context.Notifications

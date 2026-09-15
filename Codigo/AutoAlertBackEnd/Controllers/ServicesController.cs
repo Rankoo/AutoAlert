@@ -2,34 +2,44 @@ using AutoAlertBackEnd.Dtos;
 using AutoAlertBackEnd.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AutoAlertBackEnd.Controllers;
 
 [Authorize]
 [ApiController]
 [Route("api/services")]
-public class ServicesController(IServiceRepository repo) : ControllerBase
+public class ServicesController(
+    IServiceRepository repo,
+    IUserRepository userRepository,
+    IRoleRepository roleRepository) : ControllerBase
 {
-    [Authorize(Policy = "VIEW_SERVICES")]
     [HttpGet("catalogs")]
-    public async Task<ActionResult<ServiceCatalogsDto>> GetCatalogs() => Ok(await repo.GetCatalogsAsync());
+    public async Task<ActionResult<ServiceCatalogsDto>> GetCatalogs()
+    {
+        if (!await CanViewServicesAsync()) return Forbid();
+        return Ok(await repo.GetCatalogsAsync());
+    }
 
-    [Authorize(Policy = "VIEW_SERVICES")]
     [HttpGet("quantities")]
-    public async Task<ActionResult<ServiceQuantitiesDto>> GetQuantities() => Ok(await repo.GetQuantitiesAsync());
+    public async Task<ActionResult<ServiceQuantitiesDto>> GetQuantities()
+    {
+        if (!await CanViewServicesAsync()) return Forbid();
+        return Ok(await repo.GetQuantitiesAsync());
+    }
 
-    [Authorize(Policy = "VIEW_SERVICES")]
     [HttpGet]
     public async Task<ActionResult<PagedServicesDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] Guid? storeId = null)
     {
+        if (!await CanViewServicesAsync()) return Forbid();
         if (page < 1 || pageSize is < 1 or > 100) return BadRequest("page debe ser mayor que 0 y pageSize debe estar entre 1 y 100.");
         return Ok(await repo.GetAllAsync(page, pageSize, search, storeId));
     }
 
-    [Authorize(Policy = "VIEW_SERVICES")]
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceDto>> Get(Guid id)
     {
+        if (!await CanViewServicesAsync()) return Forbid();
         var item = await repo.GetByIdAsync(id);
         return item is null ? NotFound() : Ok(item);
     }
@@ -56,5 +66,20 @@ public class ServicesController(IServiceRepository repo) : ControllerBase
     {
         try { return await repo.DeleteAsync(id) ? NoContent() : NotFound(); }
         catch (InvalidOperationException e) { return BadRequest(e.Message); }
+    }
+
+    private async Task<bool> CanViewServicesAsync()
+    {
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return false;
+
+        var user = await userRepository.GetUserByIdAsync(userId);
+        if (user is null)
+            return false;
+
+        var role = await roleRepository.GetPermissionByUserAsync(user);
+        return role.SpecialPermissions?.Contains("VIEW_SERVICES") == true
+            || role.Role.Equals("USER", StringComparison.OrdinalIgnoreCase)
+            || role.Role.Equals("USUARIO", StringComparison.OrdinalIgnoreCase);
     }
 }

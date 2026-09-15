@@ -161,6 +161,7 @@ export function UserManagementHeader({ open, onOpenChange, editingUser }: UserMa
         <DialogContent
           className="max-w-2xl max-h-[90vh] overflow-y-auto"
           onInteractOutside={(event) => event.preventDefault()}
+          onPointerDownOutside={(event) => event.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Modificar usuario' : 'Agregar Nuevo Usuario'}</DialogTitle>

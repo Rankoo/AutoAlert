@@ -26,7 +26,6 @@ public class NotificationsController : ControllerBase
         _roleRepository = roleRepository;
     }
 
-    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
     [HttpGet("mine")]
     public async Task<ActionResult<IEnumerable<Notifications>>> GetMine()
     {
@@ -37,7 +36,6 @@ public class NotificationsController : ControllerBase
         return Ok(await _repo.GetByUserIdAsync(id));
     }
 
-    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
     [HttpPatch("mine/{id:guid}/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
@@ -47,7 +45,16 @@ public class NotificationsController : ControllerBase
         return await _repo.MarkAsReadAsync(id, userId) ? NoContent() : NotFound();
     }
 
-    [Authorize(Policy = "VIEW_NOTIFICATIONS")]
+    [Authorize(Policy = "EDIT_NOTIFICATIONS")]
+    [HttpPatch("{id:guid}/read")]
+    public async Task<IActionResult> MarkAnyAsRead(Guid id)
+    {
+        if (!await IsAdministratorAsync())
+            return Forbid();
+
+        return await _repo.MarkAsReadAsync(id) ? NoContent() : NotFound();
+    }
+
     [HttpPatch("mine/read")]
     public async Task<ActionResult<object>> MarkAllAsRead()
     {

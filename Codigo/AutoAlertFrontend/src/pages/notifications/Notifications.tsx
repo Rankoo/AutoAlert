@@ -42,7 +42,7 @@ export function Notifications() {
   const users = useQuery({ queryKey: ['users', 'notifications'], queryFn: async () => (await autoAlertBackend.get<UsersResponse>('/users', { params: { page: 1, pageSize: 100, isActive: true } })).data.users, enabled: isCreateOpen });
   const refresh = () => client.invalidateQueries({ queryKey: ['notifications'] });
   const closeCreate = () => { setIsCreateOpen(false); setSelectedStoreId(''); setForm(emptyForm); };
-  const markAsRead = useMutation({ mutationFn: (id: string) => autoAlertBackend.patch(`/notifications/mine/${id}/read`), onSuccess: refresh, onError: () => toast.error('No fue posible marcar la notificación como leída') });
+  const markAsRead = useMutation({ mutationFn: (id: string) => autoAlertBackend.patch(isAdministrator ? `/notifications/${id}/read` : `/notifications/mine/${id}/read`), onSuccess: refresh, onError: () => toast.error('No fue posible marcar la notificación como leída') });
   const markAllAsRead = useMutation({ mutationFn: () => autoAlertBackend.patch('/notifications/mine/read'), onSuccess: refresh, onError: () => toast.error('No fue posible marcar las notificaciones como leídas') });
   const remove = useMutation({ mutationFn: (id: string) => autoAlertBackend.delete(`/notifications/${id}`), onSuccess: () => { refresh(); toast.success('Notificación eliminada'); }, onError: () => toast.error('No fue posible eliminar la notificación') });
   const create = useMutation({
@@ -179,7 +179,7 @@ export function Notifications() {
       </Card>
 
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && closeCreate()}>
-        <DialogContent>
+        <DialogContent onPointerDownOutside={(event) => event.preventDefault()}>
           <DialogHeader><DialogTitle>Crear notificación</DialogTitle><DialogDescription>Selecciona primero la tienda, luego la alerta y el usuario que recibirá este aviso.</DialogDescription></DialogHeader>
           <form className="space-y-4" onSubmit={submit}>
             <div>

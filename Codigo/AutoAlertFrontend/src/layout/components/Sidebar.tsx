@@ -10,7 +10,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useCurrentUserInfoStore } from '@/store/currentUserInfoStore';
-import { getRolePermissions, type Permission } from '@/utils/permissions';
+import type { Permission } from '@/utils/permissions';
 import { NavLink } from 'react-router';
 interface SidebarProps {
   isOpen?: boolean;
@@ -21,7 +21,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
   const isCollapsed = !isOpen;
   const userInfo = useCurrentUserInfoStore((state) => state.userInfo?.user);
   const permissions = userInfo?.permissions ?? [];
-  const rolePermissions = getRolePermissions(userInfo?.role);
+  const isStandardUser = ['user', 'usuario'].includes(userInfo?.role.toLocaleLowerCase('es-CO') ?? '');
   const menuItems = [
   {
     id: 'users' as ModuleType,
@@ -60,9 +60,9 @@ export function Sidebar({ isOpen }: SidebarProps) {
   },
 ];
 
-  const visibleMenuItems = menuItems.filter((item) =>
-    permissions.includes(item.permission) || rolePermissions.includes(item.permission)
-  );
+  const visibleMenuItems = isStandardUser
+    ? menuItems.filter((item) => item.id === 'notifications' || item.id === 'services')
+    : menuItems.filter((item) => permissions.includes(item.permission));
 
   return (
     <aside
