@@ -8,8 +8,8 @@ namespace AutoAlertBackEnd.Models
     public class Users : BaseEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public Guid? DocumentTypeId { get; set; }
-        public Guid? RoleId { get; set; }
+        public Guid DocumentTypeId { get; set; }
+        public Guid RoleId { get; set; }
 
         [Required, MaxLength(150)]
         public required string Names { get; set; }
@@ -37,6 +37,7 @@ namespace AutoAlertBackEnd.Models
         public string? Position { get; set; }
         public bool IsActive { get; set; } = true;
         public bool ChangePassword { get; set; } = true;
+        public DateTimeOffset? LastLoginAt { get; set; }
 
         // Navigation properties
         [JsonIgnore]

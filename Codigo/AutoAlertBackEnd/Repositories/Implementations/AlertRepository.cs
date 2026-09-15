@@ -18,6 +18,14 @@ public class AlertRepository : IAlertRepository
         return await _context.Alerts.ToListAsync();
     }
 
+    public async Task<IEnumerable<Alerts>> GetByUserIdAsync(Guid userId)
+    {
+        return await _context.Alerts
+            .Where(alert => _context.Notifications.Any(notification =>
+                notification.AlertId == alert.Id && notification.UserId == userId))
+            .ToListAsync();
+    }
+
     public async Task<Alerts?> GetByIdAsync(Guid id)
     {
         return await _context.Alerts.FindAsync(id);
@@ -36,14 +44,19 @@ public class AlertRepository : IAlertRepository
         
         if (fromDate.HasValue)
         {
-            query = query.Where(a => a.ScheduledAt >= fromDate.Value);
+            query = query.Where(a => a.DueDate >= fromDate.Value);
         }
         
-        return await query.OrderBy(a => a.ScheduledAt).ToListAsync();
+        return await query.OrderBy(a => a.DueDate).ToListAsync();
     }
 
     public async Task<Alerts> CreateAsync(Alerts alert)
     {
+        var serviceExists = await _context.Services.AnyAsync(s => s.Id == alert.ServiceId);
+        if (!serviceExists)
+            throw new InvalidOperationException("El servicio seleccionado no existe.");
+
+        alert.Status = string.IsNullOrWhiteSpace(alert.Status) ? "Pendiente" : alert.Status;
         _context.Alerts.Add(alert);
         await _context.SaveChangesAsync();
         return alert;
@@ -58,10 +71,26 @@ public class AlertRepository : IAlertRepository
         return existing;
     }
 
+    public async Task<Alerts?> UpdateStatusAsync(Guid id, string status)
+    {
+        var existing = await _context.Alerts.FindAsync(id);
+        if (existing is null) return null;
+
+        existing.Status = status;
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
     public async Task<bool> DeleteAsync(Guid id)
     {
         var existing = await _context.Alerts.FindAsync(id);
         if (existing == null) return false;
+
+        var notifications = await _context.Notifications
+            .Where(notification => notification.AlertId == id)
+            .ToListAsync();
+
+        _context.Notifications.RemoveRange(notifications);
         _context.Alerts.Remove(existing);
         await _context.SaveChangesAsync();
         return true;

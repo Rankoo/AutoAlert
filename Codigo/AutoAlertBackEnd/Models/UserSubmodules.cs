@@ -10,8 +10,10 @@ namespace AutoAlertBackEnd.Models
 
         public bool IsEnabled { get; set; }
 
-
-        public Users? User { get; set; }
-        public SubModules? SubModule { get; set; }
+        [Required]
+        required public Users User { get; set; }
+        
+        [Required]
+        required public SubModules SubModule { get; set; }
     }
 }

@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json;
+using AutoAlertBackEnd.Context;
+using AutoAlertBackEnd.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +22,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder => builder
-            .AllowAnyOrigin()  // Permitir cualquier origen
+            .WithOrigins("http://localhost:3000")
             .AllowAnyMethod()  // Permitir cualquier metodo HTTP
-            .AllowAnyHeader()); // Permitir cualquier cabecera
+            .AllowAnyHeader()
+            .AllowCredentials()); // Permitir cualquier cabecera
 });
 
 // Validate JWT config early to fail fast and avoid nullable warnings
@@ -79,6 +82,14 @@ builder.Services.AddAuthentication(x =>
 });
 var app = builder.Build();
 
+if (builder.Configuration.GetValue<bool>("Seed:Enabled"))
+{
+    using var scope = app.Services.CreateScope();
+    await DatabaseSeeder.SeedAsync(
+        scope.ServiceProvider.GetRequiredService<AutoAlertContext>(),
+        scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseSeeder"));
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -99,7 +110,7 @@ app.Use(async (context, next) =>
 {
     await next();
 
-    if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
+    if (context.Response.StatusCode == StatusCodes.Status401Unauthorized && !context.Response.HasStarted)
     {
         context.Response.ContentType = "application/json";
         var result = JsonSerializer.Serialize(

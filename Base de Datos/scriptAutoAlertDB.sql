@@ -49,7 +49,7 @@ CREATE TABLE Companies (
 -- ============================================================
 CREATE TABLE Stores (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    CompanyId UNIQUEIDENTIFIER NOT NULL,
+    CompanyId UNIQUEIDENTIFIER NULL,
     Name NVARCHAR(100) NOT NULL,
     Address NVARCHAR(150),
     City NVARCHAR(100),
@@ -101,6 +101,7 @@ CREATE TABLE Users (
     Position NVARCHAR(100) NULL,
     IsActive BIT DEFAULT 1,
     ChangePassword BIT DEFAULT 1,
+    LastLoginAt datetimeoffset NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(Id),
@@ -173,11 +174,6 @@ CREATE TABLE Services (
     Name NVARCHAR(150) NOT NULL,
     Provider NVARCHAR(100),
     AccountNumber NVARCHAR(100),
-    DueDate DATE NULL,
-    Amount DECIMAL(18,2) NULL,
-    Status NVARCHAR(50) DEFAULT 'Pendiente',
-    LastCheck DATETIME NULL,
-    AlertSent BIT DEFAULT 0,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (StoreId) REFERENCES Stores(Id)
@@ -191,12 +187,17 @@ CREATE TABLE Alerts (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     ServiceId UNIQUEIDENTIFIER NOT NULL,        -- Servicio asociado a la alerta
     ScheduledAt DATETIME NOT NULL,              -- Fecha y hora programada para el envío
-    Channel NVARCHAR(50),                       -- Canal de envío (WhatsApp, Email, SMS)
     Status NVARCHAR(50),                        -- Estado (Programada, Enviada, Fallida)
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (ServiceId) REFERENCES Services(Id)
 );
+
+-- Datos de cada cobro: el servicio permanece como catálogo y cada alerta
+-- conserva el monto y la fecha de vencimiento de su período.
+ALTER TABLE Alerts ADD DueDate DATE NOT NULL DEFAULT CAST(GETDATE() AS DATE);
+ALTER TABLE Alerts ADD Amount DECIMAL(18,2) NOT NULL DEFAULT 0;
+ALTER TABLE Alerts ALTER COLUMN ScheduledAt DATETIME NULL;
 
 -- ============================================================
 -- 13. Tabla: Notifications
@@ -208,11 +209,16 @@ CREATE TABLE Notifications (
     UserId UNIQUEIDENTIFIER NOT NULL,           -- Usuario destinatario
     SentAt DATETIME,                            -- Fecha real de envío
     Result NVARCHAR(100),                       -- Resultado (Enviado, Fallido, Reintento)
+    Channel NVARCHAR(50),                       -- Canal de envío (WhatsApp, Email, SMS)         
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (AlertId) REFERENCES Alerts(Id),
     FOREIGN KEY (UserId) REFERENCES Users(Id)
 );
+
+ALTER TABLE Notifications ADD Title NVARCHAR(150) NULL;
+ALTER TABLE Notifications ADD Message NVARCHAR(500) NULL;
+ALTER TABLE Notifications ADD IsRead BIT NOT NULL DEFAULT 0;
 
 -- ============================================================
 -- 14. Tabla: UserCompanies
@@ -274,10 +280,11 @@ GO
 insert into Roles (Name) values ('ADMIN'),('SUPERVISOR'),('USER'),('AUDITOR');
 GO
 
-INSERT INTO Modules("Name") VALUES ('USERS'),('SERVICES'),('STORES'),('COMPANIES');
+INSERT INTO Modules(Name) VALUES ('USERS'),('SERVICES'),('STORES'),('COMPANIES');
+INSERT INTO Modules(Name) VALUES ('ALERTS'),('NOTIFICATIONS');
 GO
 
-INSERT INTO SubModules ("ModuleId","Name") VALUES 
+INSERT INTO SubModules (ModuleId,Name) VALUES 
 ((SELECT Id FROM Modules WHERE Name = 'USERS'), 'VIEW_USERS'),
 ((SELECT Id FROM Modules WHERE Name = 'USERS'), 'EDIT_USERS'),
 ((SELECT Id FROM Modules WHERE Name = 'USERS'), 'DELETE_USERS'),
@@ -291,13 +298,21 @@ INSERT INTO SubModules ("ModuleId","Name") VALUES
 ((SELECT Id FROM Modules WHERE Name = 'SERVICES'), 'CREATE_SERVICES'),
 ((SELECT Id FROM Modules WHERE Name = 'SERVICES'), 'EDIT_SERVICES'),
 ((SELECT Id FROM Modules WHERE Name = 'SERVICES'), 'DELETE_SERVICES'),
+((SELECT Id FROM Modules WHERE Name = 'ALERTS'), 'VIEW_ALERTS'),
+((SELECT Id FROM Modules WHERE Name = 'ALERTS'), 'CREATE_ALERTS'),
+((SELECT Id FROM Modules WHERE Name = 'ALERTS'), 'EDIT_ALERTS'),
+((SELECT Id FROM Modules WHERE Name = 'ALERTS'), 'DELETE_ALERTS'),
+((SELECT Id FROM Modules WHERE Name = 'NOTIFICATIONS'), 'VIEW_NOTIFICATIONS'),
+((SELECT Id FROM Modules WHERE Name = 'NOTIFICATIONS'), 'CREATE_NOTIFICATIONS'),
+((SELECT Id FROM Modules WHERE Name = 'NOTIFICATIONS'), 'EDIT_NOTIFICATIONS'),
+((SELECT Id FROM Modules WHERE Name = 'NOTIFICATIONS'), 'DELETE_NOTIFICATIONS'),
 ((SELECT Id FROM Modules WHERE Name = 'COMPANIES'), 'VIEW_COMPANIES'),
 ((SELECT Id FROM Modules WHERE Name = 'COMPANIES'), 'CREATE_COMPANIES'),
 ((SELECT Id FROM Modules WHERE Name = 'COMPANIES'), 'EDIT_COMPANIES'),
 ((SELECT Id FROM Modules WHERE Name = 'COMPANIES'), 'DELETE_COMPANIES');
 GO
 
-INSERT INTO RoleSubModules("RoleId","SubModuleId","IsEnabled") VALUES
+INSERT INTO RoleSubModules(RoleId,SubModuleId,IsEnabled) VALUES
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'VIEW_USERS'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'EDIT_USERS'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'DELETE_USERS'), 1),
@@ -311,6 +326,14 @@ INSERT INTO RoleSubModules("RoleId","SubModuleId","IsEnabled") VALUES
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'CREATE_SERVICES'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'EDIT_SERVICES'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'DELETE_SERVICES'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'VIEW_ALERTS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'CREATE_ALERTS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'EDIT_ALERTS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'DELETE_ALERTS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'VIEW_NOTIFICATIONS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'CREATE_NOTIFICATIONS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'EDIT_NOTIFICATIONS'), 1),
+((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'DELETE_NOTIFICATIONS'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'VIEW_STORES'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'CREATE_STORES'), 1),
 ((SELECT Id FROM Roles WHERE Name = 'ADMIN'), (SELECT Id FROM SubModules WHERE Name = 'EDIT_STORES'), 1),
@@ -368,43 +391,3 @@ INSERT INTO RoleSubModules("RoleId","SubModuleId","IsEnabled") VALUES
 ((SELECT Id FROM Roles WHERE Name = 'USER'), (SELECT Id FROM SubModules WHERE Name = 'DELETE_STORES'), 0);
 GO
 
-INSERT INTO Users(
-	DocumentTypeId,
-	DocumentNumber,
-	RoleId,
-	Names,
-	Email,
-	PasswordHash
-) VALUES 
-(
-(SELECT Id FROM DocumentTypes WHERE Abbreviation = 'CC'),
-'1234567890',
-(SELECT Id FROM Roles WHERE Name = 'ADMIN'),
-'USUARIO ADMIN',
-'admin@gmail.com',
-''
-),
-(
-(SELECT Id FROM DocumentTypes WHERE Abbreviation = 'CC'),
-'1234567890',
-(SELECT Id FROM Roles WHERE Name = 'SUPERVISOR'),
-'USUARIO SUPERVISOR',
-'supervisor@gmail.com',
-''
-),
-(
-(SELECT Id FROM DocumentTypes WHERE Abbreviation = 'CC'),
-'1234567890',
-(SELECT Id FROM Roles WHERE Name = 'AUDITOR'),
-'USUARIO AUDITOR',
-'auditor@gmail.com',
-''
-),
-(
-(SELECT Id FROM DocumentTypes WHERE Abbreviation = 'CC'),
-'1234567890',
-(SELECT Id FROM Roles WHERE Name = 'USUARIO'),
-'USUARIO USUARIO',
-'usuario@gmail.com',
-''
-);

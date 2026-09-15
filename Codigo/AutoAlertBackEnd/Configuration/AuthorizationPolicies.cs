@@ -38,29 +38,29 @@ public static class AuthorizationPolicies
         // public const string EditGroups = "EDIT_GROUPS";
         // public const string DeleteGroups = "DELETE_GROUPS";
 
-        // // Gestión de Tiendas
-        // public const string ViewStores = "VIEW_STORES";
-        // public const string CreateStores = "CREATE_STORES";
-        // public const string EditStores = "EDIT_STORES";
-        // public const string DeleteStores = "DELETE_STORES";
+        // Gestión de Tiendas
+        public const string ViewStores = "VIEW_STORES";
+        public const string CreateStores = "CREATE_STORES";
+        public const string EditStores = "EDIT_STORES";
+        public const string DeleteStores = "DELETE_STORES";
 
         // // Gestión de Servicios
-        // public const string ViewServices = "VIEW_SERVICES";
-        // public const string CreateServices = "CREATE_SERVICES";
-        // public const string EditServices = "EDIT_SERVICES";
-        // public const string DeleteServices = "DELETE_SERVICES";
+        public const string ViewServices = "VIEW_SERVICES";
+        public const string CreateServices = "CREATE_SERVICES";
+        public const string EditServices = "EDIT_SERVICES";
+        public const string DeleteServices = "DELETE_SERVICES";
 
         // // Gestión de Alertas
-        // public const string ViewAlerts = "VIEW_ALERTS";
-        // public const string CreateAlerts = "CREATE_ALERTS";
-        // public const string EditAlerts = "EDIT_ALERTS";
-        // public const string DeleteAlerts = "DELETE_ALERTS";
+        public const string ViewAlerts = "VIEW_ALERTS";
+        public const string CreateAlerts = "CREATE_ALERTS";
+        public const string EditAlerts = "EDIT_ALERTS";
+        public const string DeleteAlerts = "DELETE_ALERTS";
 
         // // Gestión de Notificaciones
-        // public const string ViewNotifications = "VIEW_NOTIFICATIONS";
-        // public const string CreateNotifications = "CREATE_NOTIFICATIONS";
-        // public const string EditNotifications = "EDIT_NOTIFICATIONS";
-        // public const string DeleteNotifications = "DELETE_NOTIFICATIONS";
+        public const string ViewNotifications = "VIEW_NOTIFICATIONS";
+        public const string CreateNotifications = "CREATE_NOTIFICATIONS";
+        public const string EditNotifications = "EDIT_NOTIFICATIONS";
+        public const string DeleteNotifications = "DELETE_NOTIFICATIONS";
 
         // // Gestión de Módulos
         // public const string ViewModules = "VIEW_MODULES";
@@ -129,29 +129,29 @@ public static class AuthorizationPolicies
             // Permissions.EditGroups,
             // Permissions.DeleteGroups,
 
-            // // Tiendas
-            // Permissions.ViewStores,
-            // Permissions.CreateStores,
-            // Permissions.EditStores,
-            // Permissions.DeleteStores,
+            // Tiendas
+            Permissions.ViewStores,
+            Permissions.CreateStores,
+            Permissions.EditStores,
+            Permissions.DeleteStores,
 
             // // Servicios
-            // Permissions.ViewServices,
-            // Permissions.CreateServices,
-            // Permissions.EditServices,
-            // Permissions.DeleteServices,
+            Permissions.ViewServices,
+            Permissions.CreateServices,
+            Permissions.EditServices,
+            Permissions.DeleteServices,
 
             // // Alertas
-            // Permissions.ViewAlerts,
-            // Permissions.CreateAlerts,
-            // Permissions.EditAlerts,
-            // Permissions.DeleteAlerts,
+            Permissions.ViewAlerts,
+            Permissions.CreateAlerts,
+            Permissions.EditAlerts,
+            Permissions.DeleteAlerts,
 
             // // Notificaciones
-            // Permissions.ViewNotifications,
-            // Permissions.CreateNotifications,
-            // Permissions.EditNotifications,
-            // Permissions.DeleteNotifications,
+            Permissions.ViewNotifications,
+            Permissions.CreateNotifications,
+            Permissions.EditNotifications,
+            Permissions.DeleteNotifications,
 
             // // Módulos
             // Permissions.ViewModules,

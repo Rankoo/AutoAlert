@@ -9,13 +9,12 @@ namespace AutoAlertBackEnd.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid ServiceId { get; set; }
-        public DateTime ScheduledAt { get; set; }
+        public DateTime DueDate { get; set; }
+        public decimal Amount { get; set; }
         [MaxLength(50)]
-        public string? Channel { get; set; }
-
-        [MaxLength(50)]
-        public string? Status { get; set; }
+        public string Status { get; set; } = "Pendiente";
         
+        [JsonIgnore]
         public Services? Service { get; set; }
 
         [JsonIgnore]

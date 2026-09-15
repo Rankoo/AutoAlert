@@ -46,6 +46,7 @@
         '@radix-ui/react-aspect-ratio@1.1.2': '@radix-ui/react-aspect-ratio',
         '@radix-ui/react-alert-dialog@1.1.6': '@radix-ui/react-alert-dialog',
         '@radix-ui/react-accordion@1.2.3': '@radix-ui/react-accordion',
+        '@shared': path.resolve(__dirname, './src/shared'),
         '@': path.resolve(__dirname, './src'),
       },
     },
@@ -56,5 +57,9 @@
     server: {
       port: 3000,
       open: true,
+      watch: {
+        usePolling: true
+      }
     },
+    
   });

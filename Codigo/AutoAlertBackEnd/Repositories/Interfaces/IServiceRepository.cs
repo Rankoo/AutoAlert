@@ -1,14 +1,15 @@
-using AutoAlertBackEnd.Models;
+using AutoAlertBackEnd.Dtos;
 
 namespace AutoAlertBackEnd.Repositories;
 
 public interface IServiceRepository
 {
-    Task<IEnumerable<Services>> GetAllAsync();
-    Task<Services?> GetByIdAsync(Guid id);
-    Task<IEnumerable<Services>> GetByStoreIdAsync(Guid storeId);
-    Task<Services> CreateAsync(Services service);
-    Task<Services?> UpdateAsync(Services service);
+    Task<PagedServicesDto> GetAllAsync(int page, int pageSize, string? search = null, Guid? storeId = null);
+    Task<ServiceDto?> GetByIdAsync(Guid id);
+    Task<ServiceCatalogsDto> GetCatalogsAsync();
+    Task<ServiceQuantitiesDto> GetQuantitiesAsync();
+    Task<ServiceDto> CreateAsync(CreateServiceDto service);
+    Task<ServiceDto?> UpdateAsync(Guid id, UpdateServiceDto service);
     Task<bool> DeleteAsync(Guid id);
 }
 
